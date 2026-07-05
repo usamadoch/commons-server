@@ -74,13 +74,10 @@ export const pageService = {
             }
         }
 
-        if (page.status === 'draft' && !isOwner) {
-            const err = new Error('Page is not published yet') as any;
-            err.statusCode = 404;
-            err.code = 'NOT_PUBLISHED';
-            err.isOperational = true;
-            throw err;
-        }
+        // Draft pages are returned normally — the `status` field is included
+        // in the response so the client can handle display logic (e.g., DraftBanner).
+        // We don't block here because server-side callers (Next.js SSR) can't
+        // forward browser auth cookies to determine ownership.
 
         if (!page.isPublic && !isOwner && !isMember) {
             return {
