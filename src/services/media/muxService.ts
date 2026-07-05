@@ -20,7 +20,7 @@ export const muxService = {
                 // Note: mp4_support removed - 'standard' is deprecated on basic tier
                 ...(passthrough && { passthrough }),
             },
-            cors_origin: config.clientUrl, // Important for browser uploads
+            cors_origin: config.clientUrl.split(',')[0].trim(), // Important for browser uploads
         });
 
         return {

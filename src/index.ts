@@ -62,7 +62,7 @@ const httpServer = createServer(app);
 // Socket.io setup
 const io = new SocketIOServer(httpServer, {
     cors: {
-        origin: config.clientUrl,
+        origin: config.clientUrl.split(',').map(url => url.trim()),
         credentials: true,
     },
     pingTimeout: 60000,
