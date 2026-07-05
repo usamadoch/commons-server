@@ -99,7 +99,7 @@ app.use(cors({
 // JSON body parsing — skip routes that need raw body for HMAC signature verification
 app.use((req, res, next) => {
     const url = req.originalUrl;
-    if (url.includes('/api/media/mux/webhook') || url.includes('/api/webhooks/safepay')) {
+    if (url.includes('/media/mux/webhook') || url.includes('/webhooks/safepay')) {
         return next();
     }
     express.json({ limit: '10mb' })(req, res, next);
@@ -120,7 +120,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 }));
 
 // Health check (no rate limiting)
-app.get('/api/health', (_req: Request, res: Response) => {
+app.get('/health', (_req: Request, res: Response) => {
     res.json({
         success: true,
         data: {
@@ -150,7 +150,7 @@ app.get('/home', (_req: Request, res: Response) => {
 });
 
 // Readiness check (checks DB and Redis)
-app.get('/api/ready', async (_req: Request, res: Response) => {
+app.get('/ready', async (_req: Request, res: Response) => {
     const mongoReady = mongoose.connection.readyState === 1;
     const redisReady = config.redis.ioRedisUrl && ioRedis ? ioRedis.status === 'ready' : true;
 
@@ -169,28 +169,28 @@ app.get('/api/ready', async (_req: Request, res: Response) => {
 });
 
 // Apply rate limiting to API routes
-app.use('/api', apiLimiter);
+app.use(apiLimiter);
 
 
 // ... 
 
 // API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/pages', pageRoutes);
+app.use('/auth', authRoutes);
+app.use('/pages', pageRoutes);
 
-app.use('/api/media', mediaRoutes); // New media pipeline
-app.use('/api/members', membershipRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/conversations', conversationRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/seed', seedRoutes);
-app.use('/api/payouts', payoutRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/tiers', membershipPlanRoutes);
-app.use('/api/webhooks', webhookRoutes);
-app.use('/api/live', liveRoutes);
+app.use('/media', mediaRoutes); // New media pipeline
+app.use('/members', membershipRoutes);
+app.use('/posts', postRoutes);
+app.use('/conversations', conversationRoutes);
+app.use('/users', userRoutes);
+app.use('/notifications', notificationRoutes);
+app.use('/analytics', analyticsRoutes);
+app.use('/seed', seedRoutes);
+app.use('/payouts', payoutRoutes);
+app.use('/admin', adminRoutes);
+app.use('/tiers', membershipPlanRoutes);
+app.use('/webhooks', webhookRoutes);
+app.use('/live', liveRoutes);
 
 
 

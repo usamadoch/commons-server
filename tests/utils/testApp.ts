@@ -22,7 +22,7 @@ export const createTestApp = () => {
     app.use((req, res, next) => next());
 
     // Routes
-    app.use('/api/auth', authRoutes);
+    app.use('/auth', authRoutes);
     // Add other routes as needed for integration tests
 
     // Error Handler

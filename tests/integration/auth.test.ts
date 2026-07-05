@@ -1,5 +1,5 @@
 
-import { describe, it, expect, beforeAll, afterAll, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, jest } from '@jest/globals';
 
 // Mock config before other imports
 jest.unstable_mockModule('../../src/config/index.js', () => ({
@@ -44,7 +44,7 @@ describe('Auth API Integration Tests', () => {
         await clearDatabase();
     });
 
-    describe('POST /api/auth/signup', () => {
+    describe('POST /auth/signup', () => {
         const newUser = {
             email: 'test@example.com',
             password: 'Password123!',
@@ -55,7 +55,7 @@ describe('Auth API Integration Tests', () => {
 
         it('should register a new user successfully', async () => {
             const res = await request(app)
-                .post('/api/auth/signup')
+                .post('/auth/signup')
                 .send(newUser)
                 .expect(201);
 
@@ -71,11 +71,11 @@ describe('Auth API Integration Tests', () => {
 
         it('should fail with duplicate email', async () => {
             // Create user first
-            await request(app).post('/api/auth/signup').send(newUser);
+            await request(app).post('/auth/signup').send(newUser);
 
             // Try to create again
             const res = await request(app)
-                .post('/api/auth/signup')
+                .post('/auth/signup')
                 .send(newUser)
                 .expect(409);
 
@@ -85,20 +85,20 @@ describe('Auth API Integration Tests', () => {
 
         it('should fail with invalid email', async () => {
             await request(app)
-                .post('/api/auth/signup')
+                .post('/auth/signup')
                 .send({ ...newUser, email: 'invalid-email' })
                 .expect(400);
         });
 
         it('should fail with short password', async () => {
             await request(app)
-                .post('/api/auth/signup')
+                .post('/auth/signup')
                 .send({ ...newUser, password: 'short' })
                 .expect(400);
         });
     });
 
-    describe('POST /api/auth/login', () => {
+    describe('POST /auth/login', () => {
         const userCredentials = {
             email: 'login@example.com',
             password: 'Password123!'
@@ -106,7 +106,7 @@ describe('Auth API Integration Tests', () => {
 
         beforeEach(async () => {
             // Seed a user
-            await request(app).post('/api/auth/signup').send({
+            await request(app).post('/auth/signup').send({
                 ...userCredentials,
                 displayName: 'Login User',
                 username: 'loginuser',
@@ -116,7 +116,7 @@ describe('Auth API Integration Tests', () => {
 
         it('should login successfully with correct credentials', async () => {
             const res = await request(app)
-                .post('/api/auth/login')
+                .post('/auth/login')
                 .send(userCredentials)
                 .expect(200);
 
@@ -143,7 +143,7 @@ describe('Auth API Integration Tests', () => {
 
         it('should fail with incorrect password', async () => {
             const res = await request(app)
-                .post('/api/auth/login')
+                .post('/auth/login')
                 .send({ ...userCredentials, password: 'wrongpassword' })
                 .expect(401);
 
@@ -153,7 +153,7 @@ describe('Auth API Integration Tests', () => {
 
         it('should fail with non-existent user', async () => {
             await request(app)
-                .post('/api/auth/login')
+                .post('/auth/login')
                 .send({ email: 'nonexistent@example.com', password: 'password123' })
                 .expect(401);
         });
@@ -165,7 +165,7 @@ describe('Auth API Integration Tests', () => {
 
         beforeEach(async () => {
             // Create and login user
-            const signupRes = await request(app).post('/api/auth/signup').send({
+            const signupRes = await request(app).post('/auth/signup').send({
                 email: 'auth@example.com',
                 password: 'Password123!',
                 displayName: 'Auth User',
@@ -181,10 +181,10 @@ describe('Auth API Integration Tests', () => {
             userId = signupRes.body.data.user._id;
         });
 
-        describe('GET /api/auth/me', () => {
+        describe('GET /auth/me', () => {
             it('should return user profile with valid token', async () => {
                 const res = await request(app)
-                    .get('/api/auth/me')
+                    .get('/auth/me')
                     .set('Cookie', authCookies)
                     .expect(200);
 
@@ -195,7 +195,7 @@ describe('Auth API Integration Tests', () => {
 
             it('should fail without token', async () => {
                 const res = await request(app)
-                    .get('/api/auth/me')
+                    .get('/auth/me')
                     .expect(401);
 
                 expect(res.body.error.code).toBe('UNAUTHORIZED');
@@ -209,7 +209,7 @@ describe('Auth API Integration Tests', () => {
                 );
 
                 const res = await request(app)
-                    .get('/api/auth/me')
+                    .get('/auth/me')
                     .set('Cookie', [`accessToken=${expiredToken}`])
                     .expect(401);
 
@@ -220,10 +220,10 @@ describe('Auth API Integration Tests', () => {
 
         });
 
-        describe('POST /api/auth/refresh', () => {
+        describe('POST /auth/refresh', () => {
             it('should return new tokens with valid refresh token', async () => {
                 const res = await request(app)
-                    .post('/api/auth/refresh')
+                    .post('/auth/refresh')
                     .set('Cookie', authCookies)
                     .expect(200);
 
@@ -241,13 +241,13 @@ describe('Auth API Integration Tests', () => {
 
             it('should fail without refresh token', async () => {
                 await request(app)
-                    .post('/api/auth/refresh')
+                    .post('/auth/refresh')
             });
 
             it('should fail when reusing refresh token', async () => {
                 // First use - should succeed
                 const res1 = await request(app)
-                    .post('/api/auth/refresh')
+                    .post('/auth/refresh')
                     .set('Cookie', authCookies)
                     .expect(200);
 
@@ -256,7 +256,7 @@ describe('Auth API Integration Tests', () => {
                 // Second use with SAME initial cookies - should fail
                 // The refresh token from authCookies was used and deleted in the first call
                 const res2 = await request(app)
-                    .post('/api/auth/refresh')
+                    .post('/auth/refresh')
                     .set('Cookie', authCookies)
                     .expect(401); // Expect failure as token is gone
 
@@ -265,10 +265,10 @@ describe('Auth API Integration Tests', () => {
 
         });
 
-        describe('POST /api/auth/logout', () => {
+        describe('POST /auth/logout', () => {
             it('should logout and clear cookies', async () => {
                 const res = await request(app)
-                    .post('/api/auth/logout')
+                    .post('/auth/logout')
                     .set('Cookie', authCookies)
                     .expect(200);
 
@@ -292,7 +292,7 @@ describe('Auth API Integration Tests', () => {
 
                 // Verify API call fails with old token
                 await request(app)
-                    .post('/api/auth/refresh')
+                    .post('/auth/refresh')
                     .set('Cookie', authCookies)
                     .expect(401);
 
@@ -300,15 +300,15 @@ describe('Auth API Integration Tests', () => {
 
             it('should require authentication', async () => {
                 await request(app)
-                    .post('/api/auth/logout')
+                    .post('/auth/logout')
                     .expect(401);
             });
         });
 
-        describe('POST /api/auth/change-password', () => {
+        describe('POST /auth/change-password', () => {
             it('should change password with valid current password', async () => {
                 const res = await request(app)
-                    .post('/api/auth/change-password')
+                    .post('/auth/change-password')
                     .set('Cookie', authCookies)
                     .send({
                         currentPassword: 'Password123!',
@@ -320,7 +320,7 @@ describe('Auth API Integration Tests', () => {
 
                 // Verify can login with new password
                 const loginRes = await request(app)
-                    .post('/api/auth/login')
+                    .post('/auth/login')
                     .send({
                         email: 'auth@example.com',
                         password: 'NewPassword456!'
@@ -331,7 +331,7 @@ describe('Auth API Integration Tests', () => {
 
                 // Verify cannot login with old password
                 await request(app)
-                    .post('/api/auth/login')
+                    .post('/auth/login')
                     .send({
                         email: 'auth@example.com',
                         password: 'Password123!'
@@ -340,7 +340,7 @@ describe('Auth API Integration Tests', () => {
 
                 // Verify old refresh token is invalidated
                 await request(app)
-                    .post('/api/auth/refresh')
+                    .post('/auth/refresh')
                     .set('Cookie', authCookies)
                     .expect(401);
 
@@ -348,7 +348,7 @@ describe('Auth API Integration Tests', () => {
 
             it('should fail with incorrect current password', async () => {
                 await request(app)
-                    .post('/api/auth/change-password')
+                    .post('/auth/change-password')
                     .set('Cookie', authCookies)
                     .send({
                         currentPassword: 'WrongPassword1!',
@@ -359,7 +359,7 @@ describe('Auth API Integration Tests', () => {
 
             it('should require authentication', async () => {
                 await request(app)
-                    .post('/api/auth/change-password')
+                    .post('/auth/change-password')
                     .send({
                         currentPassword: 'Password123!',
                         newPassword: 'NewPassword456!'
@@ -380,7 +380,7 @@ describe('Auth API Integration Tests', () => {
             });
 
             const res = await request(app)
-                .post('/api/auth/check-email')
+                .post('/auth/check-email')
                 .send({ email: 'existing@example.com' })
                 .expect(200);
 
@@ -389,7 +389,7 @@ describe('Auth API Integration Tests', () => {
 
         it('should return false for non-existent email', async () => {
             const res = await request(app)
-                .post('/api/auth/check-email')
+                .post('/auth/check-email')
                 .send({ email: 'nonexistent@example.com' })
                 .expect(200);
 
