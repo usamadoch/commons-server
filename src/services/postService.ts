@@ -8,6 +8,8 @@ import { commentRepository } from '../repositories/commentRepository.js';
 import { NotificationService } from './notificationService.js';
 import { cloudinaryService } from './media/cloudinaryService.js';
 import { muxService } from './media/muxService.js';
+import MediaAsset from '../models/MediaAsset.js';
+import { addMediaCleanupJob } from '../jobs/queues.js';
 import { createError } from '../middleware/errorHandler.js';
 import { sanitizePostForClient, sanitizePostsForClient, AccessContext } from '../utils/postAccessControl.js';
 
@@ -184,6 +186,18 @@ export const postService = {
             publishedAt: data.status === 'published' ? new Date() : null,
         });
 
+        // Attach media assets
+        const cloudinaryPublicIds = attachments
+            .filter((a: any) => a.type === 'image' && a.cloudinaryPublicId)
+            .map((a: any) => a.cloudinaryPublicId);
+            
+        if (cloudinaryPublicIds.length > 0) {
+            await MediaAsset.updateMany(
+                { cloudinaryPublicId: { $in: cloudinaryPublicIds }, uploadedBy: userId },
+                { status: 'attached', refType: 'Post', refId: post._id }
+            );
+        }
+
         if (post.status === 'published') {
             await creatorPageRepository.updateOne({ _id: creatorPage._id }, { $inc: { postCount: 1 } });
             
@@ -255,7 +269,9 @@ export const postService = {
         if (post.mediaAttachments && post.mediaAttachments.length > 0) {
             post.mediaAttachments.forEach((attachment: any) => {
                 if (attachment.type === 'image' && attachment.cloudinaryPublicId) {
-                    cloudinaryService.deleteImage(attachment.cloudinaryPublicId);
+                    addMediaCleanupJob({ publicId: attachment.cloudinaryPublicId }).catch(err => 
+                        console.error('Failed to enqueue media cleanup job', err)
+                    );
                 } else if (attachment.type === 'video' && attachment.muxAssetId) {
                     muxService.deleteAsset(attachment.muxAssetId);
                 }

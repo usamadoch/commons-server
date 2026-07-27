@@ -6,6 +6,7 @@ import { logger } from '../config/logger.js';
 export const QUEUE_NAMES = {
     NOTIFICATIONS: 'notifications',
     ANALYTICS: 'analytics',
+    MEDIA_CLEANUP: 'media_cleanup',
 } as const;
 
 // Job types
@@ -24,18 +25,16 @@ export interface AnalyticsJobData {
     data: Record<string, unknown>;
 }
 
+export interface MediaCleanupJobData {
+    publicId: string;
+}
+
 // Queue instances
 let notificationQueue: Queue<NotificationJobData> | null = null;
 let analyticsQueue: Queue<AnalyticsJobData> | null = null;
+let mediaCleanupQueue: Queue<MediaCleanupJobData> | null = null;
 
-// Get Redis connection options for BullMQ
-const getRedisConnection = () => {
-    if (!config.redis.ioRedisUrl) {
-        return undefined;
-    }
-    // BullMQ can accept a connection URL string directly
-    return config.redis.ioRedisUrl;
-};
+import { ioRedis } from '../config/redis.js';
 
 // Initialize queues
 export const initializeQueues = (): void => {
@@ -44,14 +43,13 @@ export const initializeQueues = (): void => {
         return;
     }
 
-    const connection = getRedisConnection();
-    if (!connection) {
+    if (!ioRedis) {
         logger.warn('No Redis URL configured, background jobs will not run');
         return;
     }
 
     notificationQueue = new Queue<NotificationJobData>(QUEUE_NAMES.NOTIFICATIONS, {
-        connection: { url: connection },
+        connection: ioRedis as any,
         defaultJobOptions: {
             removeOnComplete: 100,
             removeOnFail: 50,
@@ -64,11 +62,24 @@ export const initializeQueues = (): void => {
     });
 
     analyticsQueue = new Queue<AnalyticsJobData>(QUEUE_NAMES.ANALYTICS, {
-        connection: { url: connection },
+        connection: ioRedis as any,
         defaultJobOptions: {
             removeOnComplete: 50,
             removeOnFail: 10,
             attempts: 2,
+        },
+    });
+
+    mediaCleanupQueue = new Queue<MediaCleanupJobData>(QUEUE_NAMES.MEDIA_CLEANUP, {
+        connection: ioRedis as any,
+        defaultJobOptions: {
+            removeOnComplete: 100, // Keep last 100 successful jobs
+            removeOnFail: 500,    // Keep last 500 failed jobs for debugging
+            attempts: 5,          // Retry up to 5 times for transient Cloudinary errors
+            backoff: {
+                type: 'exponential',
+                delay: 2000,
+            },
         },
     });
 
@@ -78,6 +89,7 @@ export const initializeQueues = (): void => {
 // Get queue instances
 export const getNotificationQueue = (): Queue<NotificationJobData> | null => notificationQueue;
 export const getAnalyticsQueue = (): Queue<AnalyticsJobData> | null => analyticsQueue;
+export const getMediaCleanupQueue = (): Queue<MediaCleanupJobData> | null => mediaCleanupQueue;
 
 // Add notification job
 export const addNotificationJob = async (data: NotificationJobData): Promise<Job<NotificationJobData> | null> => {
@@ -99,6 +111,17 @@ export const addAnalyticsJob = async (data: AnalyticsJobData): Promise<Job<Analy
     return analyticsQueue.add(`analytics:${data.type}`, data);
 };
 
+// Add media cleanup job
+export const addMediaCleanupJob = async (data: MediaCleanupJobData): Promise<Job<MediaCleanupJobData> | null> => {
+    if (!mediaCleanupQueue) {
+        // Fallback or log if no queue
+        logger.warn('Media cleanup queue not available, asset may be orphaned');
+        return null;
+    }
+
+    return mediaCleanupQueue.add('media:cleanup', data);
+};
+
 // Close queues gracefully
 export const closeQueues = async (): Promise<void> => {
     const closePromises: Promise<void>[] = [];
@@ -108,6 +131,9 @@ export const closeQueues = async (): Promise<void> => {
     }
     if (analyticsQueue) {
         closePromises.push(analyticsQueue.close());
+    }
+    if (mediaCleanupQueue) {
+        closePromises.push(mediaCleanupQueue.close());
     }
 
     await Promise.all(closePromises);

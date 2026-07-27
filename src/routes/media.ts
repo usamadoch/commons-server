@@ -3,6 +3,7 @@ import express from 'express';
 import { protect } from '../middleware/auth.js';
 import {
     getCloudinarySignature,
+    registerPendingUpload,
     getMuxUploadUrl,
     handleMuxWebhook,
     deleteMedia
@@ -12,6 +13,9 @@ const router = Router();
 
 // Get Cloudinary Signature (Auth required)
 router.get('/cloudinary/signature', protect, getCloudinarySignature as RequestHandler);
+
+// Register Pending Cloudinary Upload (Auth required)
+router.post('/cloudinary/register-upload', protect, registerPendingUpload as RequestHandler);
 
 // Get Mux Upload URL (Auth required)
 router.get('/mux/upload-url', protect, getMuxUploadUrl as RequestHandler);

@@ -4,6 +4,7 @@ import { memberRepository } from '../repositories/memberRepository.js';
 import { createError } from '../middleware/errorHandler.js';
 import { UpdatePageInput } from '../utils/validators.js';
 import { Types } from 'mongoose';
+import { mediaLifecycleService } from './media/mediaLifecycleService.js';
 
 export const pageService = {
     async getPublicPages() {
@@ -24,12 +25,37 @@ export const pageService = {
         return page;
     },
 
-    async updateMyPage(userId: string | Types.ObjectId, updateData: UpdatePageInput) {
+    async updateMyPage(userId: string | Types.ObjectId, updateData: UpdatePageInput & { avatarUrl?: string, bannerUrl?: string }) {
+        const oldPage = await creatorPageRepository.findOne({ userId });
+
         const updateConfig = {
             $set: updateData,
             $setOnInsert: { userId }
         };
         const page = await creatorPageRepository.findOneAndUpdateUpsert({ userId }, updateConfig);
+
+        // Handle avatar lifecycle if it changed
+        if (updateData.avatarUrl && oldPage && oldPage.avatarUrl !== updateData.avatarUrl) {
+            await mediaLifecycleService.handleImageReplacement(
+                oldPage.avatarUrl,
+                updateData.avatarUrl,
+                userId,
+                'Page',
+                page._id
+            );
+        }
+
+        // Handle banner lifecycle if it changed
+        if (updateData.bannerUrl && oldPage && oldPage.bannerUrl !== updateData.bannerUrl) {
+            await mediaLifecycleService.handleImageReplacement(
+                oldPage.bannerUrl,
+                updateData.bannerUrl,
+                userId,
+                'Page',
+                page._id
+            );
+        }
+
         return page;
     },
 

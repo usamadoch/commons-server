@@ -23,6 +23,7 @@ export const ioRedis = shouldConnectToRedis
         maxRetriesPerRequest: null, // Required for BullMQ
         enableReadyCheck: false,
         lazyConnect: true,
+        family: 4, // Force IPv4 to prevent EAI_AGAIN DNS timeouts on some networks
         // Automatically enable TLS if URL starts with rediss://
         tls: config.redis.ioRedisUrl.startsWith('rediss://') ? {
             rejectUnauthorized: false // Often needed for self-signed certificates or some cloud providers

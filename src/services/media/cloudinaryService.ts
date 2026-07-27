@@ -45,11 +45,6 @@ export const cloudinaryService = {
      */
     deleteImage: async (publicId: string) => {
         if (!publicId) return;
-        try {
-            await cloudinary.uploader.destroy(publicId);
-        } catch (error) {
-            console.error('Failed to delete Cloudinary image:', error);
-            // Non-blocking error, we don't throw to avoid stopping post deletion
-        }
+        await cloudinary.uploader.destroy(publicId);
     }
 };

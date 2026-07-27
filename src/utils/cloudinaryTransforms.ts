@@ -108,11 +108,33 @@ export function extractPublicIdFromUrl(url: string | undefined): string | null {
     const cloudName = config.cloudinary.cloudName;
     if (!cloudName) return null;
 
-    // Pattern: https://res.cloudinary.com/{cloud_name}/image/upload/{transformations}/{public_id}
-    const pattern = new RegExp(
-        `https://res\\.cloudinary\\.com/${cloudName}/image/upload/(?:[^/]+/)*(.+)$`
-    );
+    // Must be a cloudinary URL
+    if (!url.includes(`res.cloudinary.com/${cloudName}`)) return null;
 
-    const match = url.match(pattern);
-    return match ? match[1] : null;
+    const parts = url.split('/upload/');
+    if (parts.length !== 2) return null;
+    
+    const pathParts = parts[1].split('/');
+    
+    // Find the version index (e.g., v123456789)
+    const versionIndex = pathParts.findIndex(p => /^v\d+$/.test(p));
+    
+    let publicIdParts = [];
+    if (versionIndex !== -1) {
+        publicIdParts = pathParts.slice(versionIndex + 1);
+    } else {
+        // If no version string, assume the first part might be transformations
+        if (pathParts[0] && (pathParts[0].includes(',') || /^[a-z]_[a-zA-Z0-9]+/.test(pathParts[0]))) {
+            publicIdParts = pathParts.slice(1);
+        } else {
+            publicIdParts = pathParts;
+        }
+    }
+    
+    let publicId = publicIdParts.join('/');
+    
+    // Remove the file extension
+    publicId = publicId.replace(/\.[a-zA-Z0-9]+$/, '');
+    
+    return publicId;
 }

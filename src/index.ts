@@ -50,6 +50,8 @@ import { initializeSockets } from './sockets/index.js';
 import { closeQueues, initializeQueues } from 'jobs/queues.js';
 import { startNotificationWorker, stopNotificationWorker } from 'jobs/workers/notificationWorker.js';
 import { startReconciliationCron } from './jobs/reconciliation.js';
+import { startMediaCleanupWorker, stopMediaCleanupWorker } from './jobs/workers/mediaCleanupWorker.js';
+import { startMediaCleanupCron } from './jobs/mediaCleanupCron.js';
 
 
 
@@ -234,6 +236,7 @@ const gracefulShutdown = async (signal: string): Promise<void> => {
     try {
         // Stop background workers
         await stopNotificationWorker();
+        await stopMediaCleanupWorker();
 
         // Close job queues
         await closeQueues();
@@ -295,9 +298,11 @@ const startServer = async (): Promise<void> => {
 
         // Start CRON jobs
         startReconciliationCron();
+        startMediaCleanupCron();
 
         // Start background workers
         startNotificationWorker(io);
+        startMediaCleanupWorker();
 
         // Start HTTP server
         httpServer.listen(config.port, () => {

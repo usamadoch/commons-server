@@ -38,7 +38,6 @@ const superChatTierSchema = new Schema<ISuperChatTierDocument>(
 );
 
 // Indexes
-superChatTierSchema.index({ minAmount: 1 });
 superChatTierSchema.index({ isActive: 1 });
 
 const SuperChatTier = mongoose.model<ISuperChatTierDocument>('SuperChatTier', superChatTierSchema);

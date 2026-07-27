@@ -8,6 +8,7 @@ import { Worker, Job } from 'bullmq';
 import { Server } from 'socket.io';
 import config from '../../config/index.js';
 import { logger } from '../../config/logger.js';
+import { ioRedis } from '../../config/redis.js';
 import { QUEUE_NAMES, NotificationJobData } from '../queues.js';
 import { NotificationService } from '../../services/notificationService.js';
 
@@ -56,8 +57,8 @@ export const startNotificationWorker = (io?: Server): void => {
         return;
     }
 
-    if (!config.redis.ioRedisUrl) {
-        logger.warn('No Redis URL configured, notification worker not started');
+    if (!ioRedis) {
+        logger.warn('No Redis configured, notification worker not started');
         return;
     }
 
@@ -65,7 +66,7 @@ export const startNotificationWorker = (io?: Server): void => {
         QUEUE_NAMES.NOTIFICATIONS,
         processNotification,
         {
-            connection: { url: config.redis.ioRedisUrl },
+            connection: ioRedis as any,
             concurrency: 5,
         }
     );

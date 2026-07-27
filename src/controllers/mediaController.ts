@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from '../types/index.js';
 import { cloudinaryService } from '../services/media/cloudinaryService.js';
 import { muxService } from '../services/media/muxService.js';
 import Post from '../models/Post.js';
+import MediaAsset from '../models/MediaAsset.js';
 
 // Helper to sanitize path components
 const sanitize = (str: string) => str.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
@@ -81,6 +82,28 @@ export const getCloudinarySignature = async (req: AuthenticatedRequest, res: Res
                 public_id // Return explicitly so client can send it
             }
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const registerPendingUpload = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { cloudinaryPublicId, url } = req.body;
+        
+        if (!cloudinaryPublicId || !url) {
+            res.status(400).json({ success: false, error: { message: 'Missing cloudinaryPublicId or url' }});
+            return;
+        }
+
+        await MediaAsset.create({
+            cloudinaryPublicId,
+            url,
+            uploadedBy: req.user._id,
+            status: 'pending'
+        });
+
+        res.json({ success: true });
     } catch (error) {
         next(error);
     }
