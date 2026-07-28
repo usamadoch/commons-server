@@ -1,9 +1,8 @@
 import { userRepository } from '../repositories/userRepository.js';
 import { notificationRepository } from '../repositories/notificationRepository.js';
-import { NotificationType, NotificationPreferences, NewMessageMetadata, NotificationMetadata } from '../types/index.js';
+import { NotificationType, NotificationPreferences, NotificationMetadata } from '../types/index.js';
 import { Server } from 'socket.io';
 import { logger } from '../config/logger.js';
-import { INotificationDocument } from '../models/Notification.js';
 
 interface SendNotificationOptions {
     actionUrl: string;
@@ -12,6 +11,43 @@ interface SendNotificationOptions {
     metadata?: NotificationMetadata;
     io?: Server;
 }
+
+/**
+ * Aggregation configuration per notification type.
+ * - groupKeyFn: extracts the grouping key from metadata (null = no aggregation)
+ * - bodyBuilder: produces the notification body text given the current count
+ */
+interface AggregationConfig {
+    groupKeyFn: (metadata: Record<string, unknown>) => string | null;
+    bodyBuilder: (count: number, originalBody: string) => string;
+}
+
+const AGGREGATION_CONFIG: Partial<Record<NotificationType, AggregationConfig>> = {
+    new_message: {
+        groupKeyFn: (m) => (m.conversationId as string) || null,
+        bodyBuilder: (count) => `${count} new messages`,
+    },
+    post_liked: {
+        groupKeyFn: (m) => (m.postId as string)?.toString() || null,
+        bodyBuilder: (count) => `${count} people liked your post`,
+    },
+    new_comment: {
+        groupKeyFn: (m) => (m.postId as string)?.toString() || null,
+        bodyBuilder: (count) => `${count} new comments on your post`,
+    },
+    comment_reply: {
+        groupKeyFn: (m) => (m.parentId as string)?.toString() || null,
+        bodyBuilder: (count) => `${count} new replies to your comment`,
+    },
+    new_member: {
+        groupKeyFn: () => {
+            // Rolling day-window bucket
+            const now = new Date();
+            return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+        },
+        bodyBuilder: (count) => `${count} new members joined today`,
+    },
+};
 
 export class NotificationService {
     /**
@@ -24,9 +60,8 @@ export class NotificationService {
             case 'new_comment':
             case 'comment_reply': return 'newComments';
             case 'new_message': return 'newMessages';
-            case 'mention': return 'mentions';
-            // 'post_liked', 'member_left', 'creator_went_live', 'system' don't have direct mappings in current User model
-            // We'll return null to imply "always allow" (or subject to global switch)
+            // 'post_liked', 'member_left', 'creator_went_live', 'system' don't have direct mappings
+            // Return null to imply "always allow" (or subject to global switch)
             default: return null;
         }
     }
@@ -44,8 +79,7 @@ export class NotificationService {
         if (!key) return true; // No specific setting, so allow it
 
         // Check push/in-app specific setting
-        // We use 'push' object as the source of truth for "generation" based on user request/context
-        // Explicitly cast safe access since we know the key structure matches
+        // We use 'push' object as the source of truth for in-app notification generation
         const pushPrefs = prefs.push as Record<string, boolean>;
         if (pushPrefs && typeof pushPrefs[key] === 'boolean') {
             return pushPrefs[key];
@@ -55,7 +89,21 @@ export class NotificationService {
     }
 
     /**
-     * Send a single notification
+     * Builds a dedupeKey for a notification. Returns null for non-aggregated types.
+     * Format: `${type}:${recipientId}:${groupKey}`
+     */
+    private static buildDedupeKey(recipientId: string, type: NotificationType, metadata?: Record<string, unknown>): string | null {
+        const config = AGGREGATION_CONFIG[type];
+        if (!config) return null;
+
+        const groupKey = config.groupKeyFn(metadata || {});
+        if (!groupKey) return null;
+
+        return `${type}:${recipientId}:${groupKey}`;
+    }
+
+    /**
+     * Send a single notification — with aggregation and deduplication when applicable.
      */
     static async sendNotification(
         recipientId: string,
@@ -76,48 +124,46 @@ export class NotificationService {
                 return null;
             }
 
-            // [Modified] Check for existing unread notification to aggregate
-            if (type === 'new_message' && options.metadata?.conversationId) {
-                const existingNotification = await notificationRepository.findOne({
-                    recipientId,
-                    type: 'new_message',
-                    isRead: false,
-                    'metadata.conversationId': options.metadata.conversationId
-                }) as INotificationDocument;
-
-                if (existingNotification) {
-                    // Type guard/assertion for strict metadata usage
-                    const metadata = existingNotification.metadata as unknown as NewMessageMetadata;
-                    const currentCount = metadata.messageCount || 1;
-                    const newCount = currentCount + 1;
-
-                    // Use a generic summary message
-                    existingNotification.body = `${newCount} new messages`;
-
-                    // Explicitly update metadata with typed object
-                    const newMetadata: NewMessageMetadata = {
-                        ...(existingNotification.metadata as Record<string, unknown>),
-                        conversationId: metadata.conversationId,
-                        messageCount: newCount
-                    };
-
-                    existingNotification.metadata = newMetadata;
-                    await existingNotification.save();
-
-                    // Emit socket update
-                    if (options.io) {
-                        options.io.to(`user:${recipientId}`).emit('notification', existingNotification);
-                    }
-                    return existingNotification;
-                }
-            }
-
-            // Create notification in DB
             const metadata = options.metadata || {};
-            if (type === 'new_message') {
-                metadata.messageCount = 1;
+            const dedupeKey = this.buildDedupeKey(recipientId, type, metadata as Record<string, unknown>);
+            const aggConfig = AGGREGATION_CONFIG[type];
+
+            // Aggregated path: upsert using dedupeKey
+            if (dedupeKey && aggConfig) {
+                const insertData: Record<string, unknown> = {
+                    recipientId,
+                    type,
+                    title,
+                    body,
+                    actionUrl: options.actionUrl,
+                    actionLabel: options.actionLabel || 'View',
+                    imageUrl: options.imageUrl || null,
+                    metadata: { ...metadata, count: 1 },
+                    isRead: false,
+                };
+
+                // The upsert will either create a new doc (count=1) or increment count on existing
+                const notification = await notificationRepository.upsertByDedupeKey(
+                    dedupeKey,
+                    insertData,
+                    aggConfig.bodyBuilder(1, body), // placeholder — body is overwritten by $set on updates
+                );
+
+                // Build the correct body for the current count
+                const currentCount = (notification.metadata as Record<string, unknown>)?.count as number || 1;
+                if (currentCount > 1) {
+                    notification.body = aggConfig.bodyBuilder(currentCount, body);
+                    await notification.save();
+                }
+
+                // Emit socket update
+                if (options.io) {
+                    options.io.to(`user:${recipientId}`).emit('notification', notification);
+                }
+                return notification;
             }
 
+            // Non-aggregated path: simple create with optional dedupeKey for idempotency
             const notification = await notificationRepository.create({
                 recipientId,
                 type,
@@ -127,6 +173,7 @@ export class NotificationService {
                 actionLabel: options.actionLabel || 'View',
                 imageUrl: options.imageUrl || null,
                 metadata: metadata,
+                dedupeKey: null,
                 isRead: false,
             });
 
@@ -143,7 +190,8 @@ export class NotificationService {
     }
 
     /**
-     * Send notification to multiple recipients (efficiently)
+     * Send notification to multiple recipients (efficiently).
+     * For non-aggregated types, uses bulk insert. For aggregated types, uses per-recipient upsert.
      */
     static async sendMassNotification(
         recipientIds: string[],
@@ -166,6 +214,25 @@ export class NotificationService {
 
             if (eligibleRecipients.length === 0) return [];
 
+            const aggConfig = AGGREGATION_CONFIG[type];
+
+            // For aggregated types, process each recipient individually (upsert)
+            if (aggConfig) {
+                const results = await Promise.all(
+                    eligibleRecipients.map((user: any) =>
+                        this.sendNotification(
+                            user._id.toString(),
+                            type,
+                            title,
+                            body,
+                            options
+                        )
+                    )
+                );
+                return results.filter(Boolean);
+            }
+
+            // For non-aggregated types, bulk insert
             const notificationsData = eligibleRecipients.map((user: any) => ({
                 recipientId: user._id,
                 type,
@@ -175,6 +242,7 @@ export class NotificationService {
                 actionLabel: options.actionLabel || 'View',
                 imageUrl: options.imageUrl || null,
                 metadata: options.metadata || {},
+                dedupeKey: null,
                 isRead: false,
                 createdAt: new Date(),
                 updatedAt: new Date()

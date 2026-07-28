@@ -29,7 +29,7 @@ export const mediaLifecycleService = {
         if (oldUrl) {
             const oldPublicId = extractPublicIdFromUrl(oldUrl);
             if (oldPublicId) {
-                addMediaCleanupJob({ publicId: oldPublicId }).catch(err =>
+                addMediaCleanupJob({ type: 'image', publicId: oldPublicId }).catch(err =>
                     console.error(`Failed to enqueue cleanup job for ${refType}`, err)
                 );
             }

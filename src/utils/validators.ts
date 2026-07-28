@@ -145,14 +145,13 @@ export const updateUserSchema = z.object({
             newMembers: z.boolean(),
             newComments: z.boolean(),
             newMessages: z.boolean(),
-            weeklyDigest: z.boolean(),
+            newPosts: z.boolean(),
         }).optional(),
         push: z.object({
             newMembers: z.boolean(),
             newPosts: z.boolean(),
             newComments: z.boolean(),
             newMessages: z.boolean(),
-            mentions: z.boolean(),
         }).optional(),
         inApp: z.object({
             all: z.boolean(),

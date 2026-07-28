@@ -37,6 +37,7 @@ interface Config {
         useRedisCache: boolean;
         useBackgroundJobs: boolean;
         enableAuditLogs: boolean;
+        emailEnabled: boolean;
     };
     mux: {
         tokenId: string;
@@ -89,6 +90,7 @@ const config: Config = {
         useRedisCache: process.env.FEATURE_REDIS_CACHE === 'true',
         useBackgroundJobs: process.env.FEATURE_BACKGROUND_JOBS === 'true',
         enableAuditLogs: process.env.FEATURE_AUDIT_LOGS !== 'false', // default on
+        emailEnabled: process.env.EMAIL_ENABLED === 'true', // default off — scaffold only, no real sends
     },
     mux: {
         tokenId: process.env.MUX_TOKEN_ID || '',

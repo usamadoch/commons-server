@@ -55,8 +55,8 @@ export const seedDatabase = async (req: Request, res: Response) => {
             bio: 'Digital artist and visual storyteller.',
             isEmailVerified: true,
             notificationPreferences: {
-                email: { newMembers: true, newComments: true, newMessages: true, weeklyDigest: true },
-                push: { newMembers: true, newPosts: true, newComments: true, newMessages: true, mentions: true },
+                email: { newMembers: true, newComments: true, newMessages: true, newPosts: true },
+                push: { newMembers: true, newPosts: true, newComments: true, newMessages: true },
                 inApp: { all: true },
                 quietHours: { enabled: false, startTime: '22:00', endTime: '08:00', timezone: 'UTC' }
             },
@@ -72,8 +72,8 @@ export const seedDatabase = async (req: Request, res: Response) => {
             bio: 'Tech enthusiast and code wizard.',
             isEmailVerified: true,
             notificationPreferences: {
-                email: { newMembers: true, newComments: true, newMessages: true, weeklyDigest: true },
-                push: { newMembers: true, newPosts: true, newComments: true, newMessages: true, mentions: true },
+                email: { newMembers: true, newComments: true, newMessages: true, newPosts: true },
+                push: { newMembers: true, newPosts: true, newComments: true, newMessages: true },
                 inApp: { all: true },
                 quietHours: { enabled: false, startTime: '22:00', endTime: '08:00', timezone: 'UTC' }
             },
@@ -91,8 +91,8 @@ export const seedDatabase = async (req: Request, res: Response) => {
                 bio: `Just a fan #${i}`,
                 isEmailVerified: true,
                 notificationPreferences: {
-                    email: { newMembers: true, newComments: true, newMessages: true, weeklyDigest: true },
-                    push: { newMembers: true, newPosts: true, newComments: true, newMessages: true, mentions: true },
+                    email: { newMembers: true, newComments: true, newMessages: true, newPosts: true },
+                    push: { newMembers: true, newPosts: true, newComments: true, newMessages: true },
                     inApp: { all: true },
                     quietHours: { enabled: false, startTime: '22:00', endTime: '08:00', timezone: 'UTC' }
                 },

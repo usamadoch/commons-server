@@ -11,6 +11,8 @@ import { youtubeIntegration } from '../integrations/youtube.js';
 import { getOrCreateSafepayCustomer, getSavedPaymentMethod } from './safepayService.js';
 import { SubscriptionService } from './subscriptionService.js';
 import { Server as SocketIOServer } from 'socket.io';
+import { addNotificationJob } from '../jobs/queues.js';
+import { memberRepository } from '../repositories/memberRepository.js';
 
 // ============================================================================
 // SANITIZATION TYPES
@@ -176,6 +178,24 @@ export const liveSessionService = {
         }
 
         await CreatorPage.updateOne({ userId: creatorId }, { activeLiveSessionId: session._id });
+
+        // Enqueue creator_went_live notification to all active members
+        const creatorPage = await CreatorPage.findOne({ userId: creatorId }, '_id displayName');
+        if (creatorPage) {
+            const members = await memberRepository.find({ creatorId, status: 'active' }, 'memberId');
+            if (members.length > 0) {
+                const recipientIds = (members as any[]).map((m: any) => m.memberId.toString());
+                addNotificationJob({
+                    recipientIds,
+                    type: 'creator_went_live',
+                    title: `${creatorPage.displayName} is live!`,
+                    body: data.title || 'A live session has started',
+                    actionUrl: `/live/${session._id}`,
+                    actionLabel: 'Watch now',
+                    metadata: { sessionId: session._id.toString(), creatorId },
+                }).catch(err => console.error('[LiveSessionService] Failed to enqueue creator_went_live notification', err));
+            }
+        }
 
         return session;
     },

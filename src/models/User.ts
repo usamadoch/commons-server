@@ -82,14 +82,13 @@ const userSchema = new Schema<IUserDocument>(
                 newMembers: { type: Boolean, default: true },
                 newComments: { type: Boolean, default: true },
                 newMessages: { type: Boolean, default: true },
-                weeklyDigest: { type: Boolean, default: true },
+                newPosts: { type: Boolean, default: true },
             },
             push: {
                 newMembers: { type: Boolean, default: true },
                 newPosts: { type: Boolean, default: true },
                 newComments: { type: Boolean, default: true },
                 newMessages: { type: Boolean, default: true },
-                mentions: { type: Boolean, default: true },
             },
             inApp: {
                 all: { type: Boolean, default: true },

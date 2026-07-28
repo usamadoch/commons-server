@@ -1,7 +1,5 @@
 import { memberRepository } from '../repositories/memberRepository.js';
 import { creatorPageRepository } from '../repositories/creatorPageRepository.js';
-import { tierRepository } from '../repositories/tierRepository.js';
-import { NotificationService } from './notificationService.js';
 import { createError } from '../middleware/errorHandler.js';
 import { IMemberDocument } from '../models/Member.js';
 import { Server } from 'socket.io';
@@ -19,64 +17,7 @@ export class MemberService {
      * Join a creator (create or reactivate member)
      */
     static async joinCreator(options: JoinCreatorOptions): Promise<IMemberDocument> {
-        const { memberId, creatorId, pageId, memberDisplayName, io } = options;
-
-        // Verify page exists
-        const page = await creatorPageRepository.findById(pageId);
-        if (!page) {
-            throw createError.notFound('Page not found');
-        }
-
-        // Validate that the creator does not have mandatory paid tiers
-        const publishedTiers = await tierRepository.findPublishedByCreatorId(creatorId);
-        if (publishedTiers && publishedTiers.length > 0) {
-            throw createError.forbidden('Creator requires a paid subscription to join.');
-        }
-
-        // Check if already a member
-        const existing = await memberRepository.findOne({ memberId, creatorId }) as IMemberDocument;
-
-        if (existing) {
-            if (existing.status === 'active') {
-                throw createError.conflict('Already a member');
-            }
-
-            // Reactivate member
-            existing.status = 'active';
-            existing.joinedAt = new Date();
-            existing.cancelledAt = null;
-            await existing.save();
-
-            await creatorPageRepository.updateOne({ _id: pageId }, { $inc: { memberCount: 1 } });
-
-            return existing;
-        }
-
-        // Create member
-        const member = await memberRepository.create({
-            memberId,
-            creatorId,
-            pageId,
-        }) as IMemberDocument;
-
-        // Update member count
-        await creatorPageRepository.updateOne({ _id: pageId }, { $inc: { memberCount: 1 } });
-
-        // Notify creator
-        await NotificationService.sendNotification(
-            creatorId,
-            'new_member',
-            'New member!',
-            `${memberDisplayName} joined`,
-            {
-                actionUrl: `/members`,
-                actionLabel: 'View members',
-                metadata: { memberId, membershipId: member._id.toString() },
-                io
-            }
-        );
-
-        return member;
+        throw createError.forbidden('Free joining is disabled. A paid subscription is required to join.');
     }
 
     /**

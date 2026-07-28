@@ -20,7 +20,6 @@ const notificationSchema = new Schema<INotificationDocument>(
                 'new_comment',
                 'comment_reply',
                 'new_message',
-                'mention',
                 'creator_went_live',
                 'system',
             ] as NotificationType[],
@@ -64,6 +63,10 @@ const notificationSchema = new Schema<INotificationDocument>(
             type: Date,
             default: null,
         },
+        dedupeKey: {
+            type: String,
+            default: null,
+        },
     },
     {
         timestamps: true,
@@ -74,6 +77,7 @@ const notificationSchema = new Schema<INotificationDocument>(
 notificationSchema.index({ recipientId: 1, isRead: 1, createdAt: -1 });
 notificationSchema.index({ recipientId: 1, createdAt: -1 });
 notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+notificationSchema.index({ dedupeKey: 1 }, { unique: true, sparse: true });
 
 const Notification = mongoose.model<INotificationDocument>('Notification', notificationSchema);
 

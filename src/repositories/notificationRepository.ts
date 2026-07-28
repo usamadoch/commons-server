@@ -36,5 +36,50 @@ export const notificationRepository = {
 
     insertMany: (data: any[]) => {
         return Notification.insertMany(data);
+    },
+
+    /**
+     * Atomic upsert using dedupeKey. If the key exists (and notification is unread),
+     * increment the count and update body/title. Otherwise insert a new doc.
+     * Returns the upserted/updated document.
+     */
+    upsertByDedupeKey: async (
+        dedupeKey: string,
+        insertData: Record<string, unknown>,
+        updateBody: string,
+        updateTitle?: string
+    ) => {
+        const { metadata, ...rest } = insertData;
+        const setOnInsert: Record<string, unknown> = { ...rest, dedupeKey };
+        
+        if (metadata && typeof metadata === 'object') {
+            for (const [k, v] of Object.entries(metadata)) {
+                if (k !== 'count') {
+                    setOnInsert[`metadata.${k}`] = v;
+                }
+            }
+        }
+
+        const update: Record<string, unknown> = {
+            $inc: { 'metadata.count': 1 },
+            $set: { body: updateBody, updatedAt: new Date() },
+            $setOnInsert: setOnInsert,
+        };
+        
+        if (updateTitle) {
+            (update.$set as Record<string, unknown>).title = updateTitle;
+        }
+
+        // Prevent MongoDB conflict: cannot have the same path in $set and $setOnInsert
+        const setKeys = Object.keys(update.$set as Record<string, unknown>);
+        for (const key of setKeys) {
+            delete (update.$setOnInsert as Record<string, unknown>)[key];
+        }
+
+        return Notification.findOneAndUpdate(
+            { dedupeKey, isRead: false },
+            update,
+            { new: true, upsert: true }
+        );
     }
 };

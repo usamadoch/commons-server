@@ -1,41 +1,78 @@
-
-
-
-
-
-
 import { Worker, Job } from 'bullmq';
 import { Server } from 'socket.io';
 import config from '../../config/index.js';
 import { logger } from '../../config/logger.js';
 import { ioRedis } from '../../config/redis.js';
-import { QUEUE_NAMES, NotificationJobData } from '../queues.js';
+import { QUEUE_NAMES, NotificationJobData, addEmailJob } from '../queues.js';
 import { NotificationService } from '../../services/notificationService.js';
+import { userRepository } from '../../repositories/userRepository.js';
 
 let worker: Worker<NotificationJobData> | null = null;
 let ioInstance: Server | undefined = undefined;
 
 /**
- * Process notification jobs
+ * Process notification jobs — both single-recipient and mass fan-out.
+ * Also enqueues email jobs for types that support email (currently `new_post`),
+ * gated by `EMAIL_ENABLED` env var and per-user email preferences.
  */
 const processNotification = async (job: Job<NotificationJobData>): Promise<void> => {
-    const { type, recipientId, title, body, actionUrl, actionLabel, metadata } = job.data;
+    const { type, recipientId, recipientIds, title, body, actionUrl, actionLabel, imageUrl, metadata } = job.data;
 
-    logger.debug('Processing notification job', { jobId: job.id, type, recipientId });
+    logger.debug('Processing notification job', { jobId: job.id, type, recipientId, recipientCount: recipientIds?.length });
 
     try {
-        await NotificationService.sendNotification(
-            recipientId,
-            type,
-            title,
-            body,
-            {
-                actionUrl: actionUrl || '/', // Fallback to root if missing, though model requires it
-                actionLabel,
-                metadata,
-                io: ioInstance
+        if (recipientIds && recipientIds.length > 0) {
+            // Mass notification path
+            await NotificationService.sendMassNotification(
+                recipientIds,
+                type,
+                title,
+                body,
+                {
+                    actionUrl: actionUrl || '/',
+                    actionLabel,
+                    imageUrl,
+                    metadata,
+                    io: ioInstance
+                }
+            );
+
+            // Enqueue email jobs for eligible types
+            if (type === 'new_post' && config.features.emailEnabled) {
+                const users = await userRepository.find(
+                    { _id: { $in: recipientIds } },
+                    '_id email notificationPreferences'
+                );
+
+                for (const user of users as any[]) {
+                    const emailPrefs = user.notificationPreferences?.email;
+                    if (emailPrefs?.newPosts !== false) {
+                        await addEmailJob({
+                            to: user.email,
+                            template: 'new-post',
+                            data: { title, body, actionUrl: actionUrl || '/', ...metadata },
+                        });
+                    }
+                }
             }
-        );
+        } else if (recipientId) {
+            // Single notification path
+            await NotificationService.sendNotification(
+                recipientId,
+                type,
+                title,
+                body,
+                {
+                    actionUrl: actionUrl || '/',
+                    actionLabel,
+                    imageUrl,
+                    metadata,
+                    io: ioInstance
+                }
+            );
+        } else {
+            logger.warn('Notification job has no recipientId or recipientIds', { jobId: job.id });
+        }
 
         logger.info('Notification processed successfully', { jobId: job.id, type, recipientId });
     } catch (error) {

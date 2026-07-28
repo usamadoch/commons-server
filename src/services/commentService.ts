@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import { postRepository } from '../repositories/postRepository.js';
 import { memberRepository } from '../repositories/memberRepository.js';
 import { commentRepository } from '../repositories/commentRepository.js';
-import { NotificationService } from './notificationService.js';
+import { addNotificationJob } from '../jobs/queues.js';
 import { createError } from '../middleware/errorHandler.js';
 
 export const commentService = {
@@ -80,18 +80,15 @@ export const commentService = {
         await postRepository.updateOne({ _id: post._id }, { $inc: { commentCount: 1 } });
 
         if (post.creatorId.toString() !== userId.toString()) {
-            await NotificationService.sendNotification(
-                post.creatorId.toString(),
-                'new_comment',
-                'New comment',
-                `${userDisplayName} commented on your post`,
-                {
-                    actionUrl: `/posts/${post._id}#comment-${comment._id}`,
-                    actionLabel: 'View comment',
-                    metadata: { postId: post._id, commentId: comment._id },
-                    io
-                }
-            );
+            addNotificationJob({
+                recipientId: post.creatorId.toString(),
+                type: 'new_comment',
+                title: 'New comment',
+                body: `${userDisplayName} commented on your post`,
+                actionUrl: `/posts/${post._id}#comment-${comment._id}`,
+                actionLabel: 'View comment',
+                metadata: { postId: post._id.toString(), commentId: comment._id.toString() },
+            }).catch(err => console.error('[CommentService] Failed to enqueue new_comment notification', err));
         }
 
         await comment.populate('authorId', 'displayName username avatarUrl');

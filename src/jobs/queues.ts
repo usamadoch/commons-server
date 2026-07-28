@@ -7,17 +7,28 @@ export const QUEUE_NAMES = {
     NOTIFICATIONS: 'notifications',
     ANALYTICS: 'analytics',
     MEDIA_CLEANUP: 'media_cleanup',
+    EMAIL: 'email',
 } as const;
 
 // Job types
 export interface NotificationJobData {
-    type: 'new_member' | 'new_comment' | 'new_message' | 'post_liked' | 'new_post';
-    recipientId: string;
+    type: 'new_member' | 'new_comment' | 'new_message' | 'post_liked' | 'new_post' | 'creator_went_live' | 'comment_reply';
+    /** For single-recipient notifications */
+    recipientId?: string;
+    /** For mass notifications (fan-out) */
+    recipientIds?: string[];
     title: string;
     body: string;
     actionUrl?: string;
     actionLabel?: string;
+    imageUrl?: string | null;
     metadata?: Record<string, unknown>;
+}
+
+export interface EmailJobData {
+    to: string;
+    template: string;
+    data: Record<string, unknown>;
 }
 
 export interface AnalyticsJobData {
@@ -26,13 +37,16 @@ export interface AnalyticsJobData {
 }
 
 export interface MediaCleanupJobData {
-    publicId: string;
+    type: 'image' | 'video';
+    publicId?: string; // for Cloudinary
+    muxAssetId?: string; // for Mux
 }
 
 // Queue instances
 let notificationQueue: Queue<NotificationJobData> | null = null;
 let analyticsQueue: Queue<AnalyticsJobData> | null = null;
 let mediaCleanupQueue: Queue<MediaCleanupJobData> | null = null;
+let emailQueue: Queue<EmailJobData> | null = null;
 
 import { ioRedis } from '../config/redis.js';
 
@@ -83,6 +97,19 @@ export const initializeQueues = (): void => {
         },
     });
 
+    emailQueue = new Queue<EmailJobData>(QUEUE_NAMES.EMAIL, {
+        connection: ioRedis as any,
+        defaultJobOptions: {
+            removeOnComplete: 100,
+            removeOnFail: 50,
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 2000,
+            },
+        },
+    });
+
     logger.info('BullMQ queues initialized');
 };
 
@@ -90,6 +117,7 @@ export const initializeQueues = (): void => {
 export const getNotificationQueue = (): Queue<NotificationJobData> | null => notificationQueue;
 export const getAnalyticsQueue = (): Queue<AnalyticsJobData> | null => analyticsQueue;
 export const getMediaCleanupQueue = (): Queue<MediaCleanupJobData> | null => mediaCleanupQueue;
+export const getEmailQueue = (): Queue<EmailJobData> | null => emailQueue;
 
 // Add notification job
 export const addNotificationJob = async (data: NotificationJobData): Promise<Job<NotificationJobData> | null> => {
@@ -122,6 +150,16 @@ export const addMediaCleanupJob = async (data: MediaCleanupJobData): Promise<Job
     return mediaCleanupQueue.add('media:cleanup', data);
 };
 
+// Add email job
+export const addEmailJob = async (data: EmailJobData): Promise<Job<EmailJobData> | null> => {
+    if (!emailQueue) {
+        logger.debug('Email queue not available, skipping email job');
+        return null;
+    }
+
+    return emailQueue.add(`email:${data.template}`, data);
+};
+
 // Close queues gracefully
 export const closeQueues = async (): Promise<void> => {
     const closePromises: Promise<void>[] = [];
@@ -134,6 +172,9 @@ export const closeQueues = async (): Promise<void> => {
     }
     if (mediaCleanupQueue) {
         closePromises.push(mediaCleanupQueue.close());
+    }
+    if (emailQueue) {
+        closePromises.push(emailQueue.close());
     }
 
     await Promise.all(closePromises);

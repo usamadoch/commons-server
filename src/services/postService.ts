@@ -5,7 +5,7 @@ import { memberRepository } from '../repositories/memberRepository.js';
 import { postLikeRepository } from '../repositories/postLikeRepository.js';
 import { postViewRepository } from '../repositories/postViewRepository.js';
 import { commentRepository } from '../repositories/commentRepository.js';
-import { NotificationService } from './notificationService.js';
+import { addNotificationJob } from '../jobs/queues.js';
 import { cloudinaryService } from './media/cloudinaryService.js';
 import { muxService } from './media/muxService.js';
 import MediaAsset from '../models/MediaAsset.js';
@@ -205,13 +205,15 @@ export const postService = {
             if (members.length > 0) {
                 const recipientIds = members.map((m: any) => m.memberId.toString());
                 const previewText = post.caption ? (post.caption.substring(0, 80) + (post.caption.length > 80 ? '...' : '')) : 'Active check it out!';
-                await NotificationService.sendMassNotification(
+                addNotificationJob({
                     recipientIds,
-                    'new_post',
-                    'New post!',
-                    `${creatorPage.displayName} posted: ${previewText}`,
-                    { actionUrl: `/posts/${post._id}`, actionLabel: 'View post', metadata: { postId: post._id, creatorId: userId }, io }
-                );
+                    type: 'new_post',
+                    title: 'New post!',
+                    body: `${creatorPage.displayName} posted: ${previewText}`,
+                    actionUrl: `/posts/${post._id}`,
+                    actionLabel: 'View post',
+                    metadata: { postId: post._id.toString(), creatorId: userId.toString() },
+                }).catch(err => console.error('[PostService] Failed to enqueue new_post notification', err));
             }
         }
         return post;
@@ -238,13 +240,15 @@ export const postService = {
                 if (members.length > 0) {
                     const recipientIds = members.map((m: any) => m.memberId.toString());
                     const previewText = updatedPost.caption ? (updatedPost.caption.substring(0, 80) + (updatedPost.caption.length > 80 ? '...' : '')) : 'Active check it out!';
-                    await NotificationService.sendMassNotification(
+                    addNotificationJob({
                         recipientIds,
-                        'new_post',
-                        'New post!',
-                        `${page.displayName} posted: ${previewText}`,
-                        { actionUrl: `/posts/${updatedPost._id}`, actionLabel: 'View post', metadata: { postId: updatedPost._id, creatorId: userId }, io }
-                    );
+                        type: 'new_post',
+                        title: 'New post!',
+                        body: `${page.displayName} posted: ${previewText}`,
+                        actionUrl: `/posts/${updatedPost._id}`,
+                        actionLabel: 'View post',
+                        metadata: { postId: updatedPost._id.toString(), creatorId: userId.toString() },
+                    }).catch(err => console.error('[PostService] Failed to enqueue new_post notification', err));
                 }
             }
         }
@@ -260,20 +264,23 @@ export const postService = {
             await creatorPageRepository.updateOne({ _id: post.pageId }, { $inc: { postCount: -1 } });
         }
 
-        await Promise.all([
+        // Fire-and-forget cleanup to prevent blocking the HTTP response
+        Promise.all([
             postLikeRepository.deleteMany({ postId: post._id }),
             postViewRepository.deleteMany({ postId: post._id }),
             commentRepository.deleteMany({ postId: post._id }),
-        ]);
+        ]).catch(err => console.error(`[PostService] Failed to perform cascading deletes for post ${post._id}`, err));
 
         if (post.mediaAttachments && post.mediaAttachments.length > 0) {
             post.mediaAttachments.forEach((attachment: any) => {
                 if (attachment.type === 'image' && attachment.cloudinaryPublicId) {
-                    addMediaCleanupJob({ publicId: attachment.cloudinaryPublicId }).catch(err => 
-                        console.error('Failed to enqueue media cleanup job', err)
+                    addMediaCleanupJob({ type: 'image', publicId: attachment.cloudinaryPublicId }).catch(err => 
+                        console.error('Failed to enqueue image media cleanup job', err)
                     );
                 } else if (attachment.type === 'video' && attachment.muxAssetId) {
-                    muxService.deleteAsset(attachment.muxAssetId);
+                    addMediaCleanupJob({ type: 'video', muxAssetId: attachment.muxAssetId }).catch(err => 
+                        console.error('Failed to enqueue video media cleanup job', err)
+                    );
                 }
             });
         }
@@ -306,13 +313,15 @@ export const postService = {
             }
 
             if (isNewLike && post && post.creatorId.toString() !== userId.toString()) {
-                await NotificationService.sendNotification(
-                    post.creatorId.toString(),
-                    'post_liked',
-                    'Post liked',
-                    `${userDisplayName} liked your post`,
-                    { actionUrl: `/posts/${postId}`, actionLabel: 'View post', metadata: { postId, userId }, io }
-                );
+                addNotificationJob({
+                    recipientId: post.creatorId.toString(),
+                    type: 'post_liked',
+                    title: 'Post liked',
+                    body: `${userDisplayName} liked your post`,
+                    actionUrl: `/posts/${postId}`,
+                    actionLabel: 'View post',
+                    metadata: { postId: postId.toString(), userId: userId.toString() },
+                }).catch(err => console.error('[PostService] Failed to enqueue post_liked notification', err));
             }
 
             return { liked: true, likeCount: post?.likeCount ?? 0 };

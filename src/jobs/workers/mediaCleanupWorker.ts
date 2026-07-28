@@ -4,14 +4,22 @@ import { logger } from '../../config/logger.js';
 import { ioRedis } from '../../config/redis.js';
 import { QUEUE_NAMES, MediaCleanupJobData } from '../queues.js';
 import { cloudinaryService } from '../../services/media/cloudinaryService.js';
-
+import { muxService } from '../../services/media/muxService.js';
 let worker: Worker<MediaCleanupJobData> | null = null;
 
 const processMediaCleanup = async (job: Job<MediaCleanupJobData>): Promise<void> => {
-    const { publicId } = job.data;
-    logger.debug('Processing media cleanup job', { jobId: job.id, publicId });
-    await cloudinaryService.deleteImage(publicId);
-    logger.info(`Successfully deleted media from Cloudinary: ${publicId}`);
+    const { type, publicId, muxAssetId } = job.data;
+    logger.debug('Processing media cleanup job', { jobId: job.id, type, publicId, muxAssetId });
+
+    if (type === 'image' && publicId) {
+        await cloudinaryService.deleteImage(publicId);
+        logger.info(`Successfully deleted image from Cloudinary: ${publicId}`);
+    } else if (type === 'video' && muxAssetId) {
+        await muxService.deleteAsset(muxAssetId);
+        logger.info(`Successfully deleted video asset from Mux: ${muxAssetId}`);
+    } else {
+        logger.warn('Unknown media cleanup type or missing identifier', { type, publicId, muxAssetId });
+    }
 };
 
 export const startMediaCleanupWorker = (): void => {

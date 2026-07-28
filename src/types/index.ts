@@ -57,14 +57,13 @@ export interface NotificationPreferences {
         newMembers: boolean;
         newComments: boolean;
         newMessages: boolean;
-        weeklyDigest: boolean;
+        newPosts: boolean;
     };
     push: {
         newMembers: boolean;
         newPosts: boolean;
         newComments: boolean;
         newMessages: boolean;
-        mentions: boolean;
     };
     inApp: {
         all: boolean;
@@ -356,7 +355,6 @@ export interface IConversation {
 }
 
 // Notifications
-// Notifications
 export type NotificationType =
     | 'new_member'
     | 'member_left'
@@ -365,7 +363,6 @@ export type NotificationType =
     | 'new_comment'
     | 'comment_reply'
     | 'new_message'
-    | 'mention'
     | 'creator_went_live'
     | 'system';
 
@@ -378,8 +375,13 @@ export interface NewMessageMetadata extends BaseNotificationMetadata {
     messageCount: number;
 }
 
+export interface AggregatedNotificationMetadata extends BaseNotificationMetadata {
+    count: number;
+}
+
 export type NotificationMetadata =
     | NewMessageMetadata
+    | AggregatedNotificationMetadata
     | BaseNotificationMetadata;
 
 export interface INotification {
@@ -392,6 +394,7 @@ export interface INotification {
     actionUrl: string;
     actionLabel: string;
     metadata: NotificationMetadata;
+    dedupeKey: string | null;
     isRead: boolean;
     readAt: Date | null;
     createdAt: Date;

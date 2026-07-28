@@ -25,7 +25,7 @@ export const startMediaCleanupCron = (): void => {
             for (const asset of orphanedAssets) {
                 try {
                     // 1. Enqueue job to delete from Cloudinary
-                    await addMediaCleanupJob({ publicId: asset.cloudinaryPublicId });
+                    await addMediaCleanupJob({ type: 'image', publicId: asset.cloudinaryPublicId });
                     
                     // 2. Remove record from DB
                     await MediaAsset.deleteOne({ _id: asset._id });
