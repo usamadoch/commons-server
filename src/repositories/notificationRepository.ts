@@ -62,7 +62,7 @@ export const notificationRepository = {
 
         const update: Record<string, unknown> = {
             $inc: { 'metadata.count': 1 },
-            $set: { body: updateBody, updatedAt: new Date() },
+            $set: { body: updateBody, updatedAt: new Date(), isRead: false },
             $setOnInsert: setOnInsert,
         };
         
@@ -77,7 +77,7 @@ export const notificationRepository = {
         }
 
         return Notification.findOneAndUpdate(
-            { dedupeKey, isRead: false },
+            { dedupeKey },
             update,
             { new: true, upsert: true }
         );
