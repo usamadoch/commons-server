@@ -127,6 +127,12 @@ const postSchema = new Schema<IPostDocument>(
             type: Boolean,
             default: false,
         },
+        linkUrl: {
+            type: String,
+        },
+        poll: {
+            type: Schema.Types.Mixed,
+        },
     },
     {
         timestamps: true,
