@@ -1,4 +1,5 @@
 import { subscriptionRepository } from '../repositories/subscriptionRepository.js';
+import { NotificationService } from './notificationService.js';
 import { userRepository } from '../repositories/userRepository.js';
 import { tierRepository } from '../repositories/tierRepository.js';
 import { transactionRepository } from '../repositories/transactionRepository.js';
@@ -81,6 +82,22 @@ export const webhookService = {
             });
 
             console.log(`[Webhook] Successfully activated subscription for user ${user.email} on tier ${plan.name}`);
+            
+            // Notify the creator
+            await NotificationService.sendNotification(
+                plan.creatorId.toString(),
+                'new_member',
+                'New Member!',
+                `${user.displayName || 'Someone'} just subscribed to ${plan.name}`,
+                {
+                    actionUrl: '/members',
+                    actionLabel: 'View Members',
+                    imageUrl: user.avatarUrl || null,
+                    metadata: { userId: user._id.toString(), action: 'add' },
+                    io: io
+                }
+            ).catch(err => console.error('[Webhook] Failed to send new member notification:', err));
+
         } catch (dbErr) {
             const payload = {
                 userId: user._id,

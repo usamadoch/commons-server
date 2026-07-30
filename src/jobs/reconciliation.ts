@@ -10,6 +10,7 @@ import LiveSession from '../models/LiveSession.js';
 import { logger } from '../config/logger.js';
 import { getSafepayTrackerStatus } from '../services/safepayService.js';
 import { SubscriptionService } from '../services/subscriptionService.js';
+import { NotificationService } from '../services/notificationService.js';
 
 
 export const runReconciliationTask = async () => {
@@ -99,6 +100,21 @@ export const runReconciliationTask = async () => {
                            ]);
                            
                            logger.info(`[Reconciliation] Successfully recovered and activated subscription ${sub._id}`);
+
+                           // Notify the creator
+                           await NotificationService.sendNotification(
+                               plan.creatorId.toString(),
+                               'new_member',
+                               'New Member!',
+                               `${user.displayName || 'Someone'} just subscribed to ${plan.name}`,
+                               {
+                                   actionUrl: '/members',
+                                   actionLabel: 'View Members',
+                                   imageUrl: user.avatarUrl || null,
+                                   metadata: { userId: user._id.toString(), action: 'add' }
+                               }
+                           ).catch(err => logger.error('[Reconciliation] Failed to send new member notification:', err));
+
                       } else if (state === 'TRACKER_CANCELLED' || state === 'TRACKER_EXPIRED') {
                            sub.status = 'canceled';
                            await sub.save();
