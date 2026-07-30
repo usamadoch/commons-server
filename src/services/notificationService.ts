@@ -231,7 +231,6 @@ export class NotificationService {
                 actionLabel: options.actionLabel || 'View',
                 imageUrl: options.imageUrl || null,
                 metadata: metadata,
-                dedupeKey: null,
                 isRead: false,
             });
 
@@ -300,7 +299,6 @@ export class NotificationService {
                 actionLabel: options.actionLabel || 'View',
                 imageUrl: options.imageUrl || null,
                 metadata: options.metadata || {},
-                dedupeKey: null,
                 isRead: false,
                 createdAt: new Date(),
                 updatedAt: new Date()

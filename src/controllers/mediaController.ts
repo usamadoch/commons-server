@@ -1,10 +1,12 @@
 
+import { randomBytes } from 'crypto';
 import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../types/index.js';
 import { cloudinaryService } from '../services/media/cloudinaryService.js';
 import { muxService } from '../services/media/muxService.js';
 import Post from '../models/Post.js';
 import MediaAsset from '../models/MediaAsset.js';
+import { addMediaCleanupJob, getMediaCleanupQueue } from '../jobs/queues.js';
 
 // Helper to sanitize path components
 const sanitize = (str: string) => str.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
@@ -52,9 +54,9 @@ export const getCloudinarySignature = async (req: AuthenticatedRequest, res: Res
 
         // 3. Construct Public ID
         // Structure: env/u_{userId}/{username}/{context}/{filename}
-        const timestamp = Math.round(new Date().getTime() / 1000);
+        const uniqueSuffix = `${Date.now()}_${randomBytes(4).toString('hex')}`;
         let folderPath = `${env}/u_${userId}/${username}`;
-        let filename = `${type}_${timestamp}`;
+        let filename = `${type}_${uniqueSuffix}`;
 
         if (type === 'avatar') {
             folderPath += `/profile`;
@@ -96,12 +98,16 @@ export const registerPendingUpload = async (req: AuthenticatedRequest, res: Resp
             return;
         }
 
-        await MediaAsset.create({
-            cloudinaryPublicId,
-            url,
-            uploadedBy: req.user._id,
-            status: 'pending'
-        });
+        await MediaAsset.findOneAndUpdate(
+            { cloudinaryPublicId },
+            {
+                cloudinaryPublicId,
+                url,
+                uploadedBy: req.user._id,
+                status: 'pending'
+            },
+            { upsert: true, new: true }
+        );
 
         res.json({ success: true });
     } catch (error) {
@@ -152,13 +158,34 @@ export const deleteMedia = async (req: AuthenticatedRequest, res: Response, next
             return;
         }
 
+        if (type !== 'image' && type !== 'video') {
+            res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid media type' } });
+            return;
+        }
+
+        if (type === 'image') {
+            await MediaAsset.deleteOne({ cloudinaryPublicId: id });
+        }
+
+        const queue = getMediaCleanupQueue();
+        if (queue) {
+            await addMediaCleanupJob({ 
+                type: type as 'image' | 'video', 
+                publicId: type === 'image' ? id : undefined,
+                muxAssetId: type === 'video' ? id : undefined 
+            });
+            res.json({
+                success: true,
+                message: 'Media queued for deletion'
+            });
+            return;
+        }
+
+        // Fallback to synchronous deletion if queue is disabled
         if (type === 'image') {
             await cloudinaryService.deleteImage(id);
         } else if (type === 'video') {
             await muxService.deleteAsset(id);
-        } else {
-            res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Invalid media type' } });
-            return;
         }
 
         res.json({

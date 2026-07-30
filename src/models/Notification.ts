@@ -65,7 +65,6 @@ const notificationSchema = new Schema<INotificationDocument>(
         },
         dedupeKey: {
             type: String,
-            default: null,
         },
     },
     {

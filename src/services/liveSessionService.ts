@@ -191,7 +191,7 @@ export const liveSessionService = {
                     type: 'creator_went_live',
                     title: `${creatorPage.displayName} is live!`,
                     body: data.title || 'A live session has started',
-                    actionUrl: `/live/${session._id}`,
+                    actionUrl: `/live-room/${session._id}`,
                     actionLabel: 'Watch now',
                     metadata: { 
                         sessionId: session._id.toString(), 
