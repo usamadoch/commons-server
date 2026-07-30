@@ -19,7 +19,7 @@ interface SendNotificationOptions {
  */
 interface AggregationConfig {
     groupKeyFn: (metadata: Record<string, unknown>) => string | null;
-    bodyBuilder: (count: number, originalBody: string) => string;
+    bodyBuilder: (count: number, originalBody: string, userIds?: string[]) => Promise<string> | string;
 }
 
 const AGGREGATION_CONFIG: Partial<Record<NotificationType, AggregationConfig>> = {
@@ -29,15 +29,45 @@ const AGGREGATION_CONFIG: Partial<Record<NotificationType, AggregationConfig>> =
     },
     post_liked: {
         groupKeyFn: (m) => (m.postId as string)?.toString() || null,
-        bodyBuilder: (count) => `${count} people liked your post`,
+        bodyBuilder: async (count, originalBody, userIds) => {
+            if (count === 1) {
+                if (originalBody) return originalBody;
+                if (userIds && userIds.length === 1) {
+                    const user = await userRepository.findById(userIds[0], 'displayName');
+                    return `${user?.displayName || 'Someone'} liked your post`;
+                }
+                return 'Someone liked your post';
+            }
+            return `${count} people liked your post`;
+        },
     },
     new_comment: {
         groupKeyFn: (m) => (m.postId as string)?.toString() || null,
-        bodyBuilder: (count) => `${count} new comments on your post`,
+        bodyBuilder: async (count, originalBody, userIds) => {
+            if (count === 1) {
+                if (originalBody) return originalBody;
+                if (userIds && userIds.length === 1) {
+                    const user = await userRepository.findById(userIds[0], 'displayName');
+                    return `${user?.displayName || 'Someone'} commented on your post`;
+                }
+                return 'Someone commented on your post';
+            }
+            return `${count} people commented on your post`;
+        },
     },
     comment_reply: {
         groupKeyFn: (m) => (m.parentId as string)?.toString() || null,
-        bodyBuilder: (count) => `${count} new replies to your comment`,
+        bodyBuilder: async (count, originalBody, userIds) => {
+            if (count === 1) {
+                if (originalBody) return originalBody;
+                if (userIds && userIds.length === 1) {
+                    const user = await userRepository.findById(userIds[0], 'displayName');
+                    return `${user?.displayName || 'Someone'} replied to your comment`;
+                }
+                return 'Someone replied to your comment';
+            }
+            return `${count} new replies to your comment`;
+        },
     },
     new_member: {
         groupKeyFn: () => {
@@ -45,7 +75,7 @@ const AGGREGATION_CONFIG: Partial<Record<NotificationType, AggregationConfig>> =
             const now = new Date();
             return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
         },
-        bodyBuilder: (count) => `${count} new members joined today`,
+        bodyBuilder: (count, originalBody) => count === 1 ? originalBody : `${count} new members joined today`,
     },
 };
 
@@ -130,6 +160,9 @@ export class NotificationService {
 
             // Aggregated path: upsert using dedupeKey
             if (dedupeKey && aggConfig) {
+                const action = (metadata.action === 'remove') ? 'remove' : 'add';
+                const actionUserId = metadata.userId as string | undefined;
+
                 const insertData: Record<string, unknown> = {
                     recipientId,
                     type,
@@ -138,29 +171,54 @@ export class NotificationService {
                     actionUrl: options.actionUrl,
                     actionLabel: options.actionLabel || 'View',
                     imageUrl: options.imageUrl || null,
-                    metadata: { ...metadata, count: 1 },
+                    metadata: { ...metadata },
                     isRead: false,
                 };
+                delete (insertData.metadata as any).action;
 
-                // The upsert will either create a new doc (count=1) or increment count on existing
-                const notification = await notificationRepository.upsertByDedupeKey(
-                    dedupeKey,
-                    insertData,
-                    aggConfig.bodyBuilder(1, body), // placeholder — body is overwritten by $set on updates
-                );
+                if (actionUserId) {
+                    const notification = await notificationRepository.aggregateUsersByDedupeKey(
+                        dedupeKey,
+                        actionUserId,
+                        action,
+                        insertData
+                    );
 
-                // Build the correct body for the current count
-                const currentCount = (notification.metadata as Record<string, unknown>)?.count as number || 1;
-                if (currentCount > 1) {
-                    notification.body = aggConfig.bodyBuilder(currentCount, body);
-                    await notification.save();
+                    if (notification) {
+                        const userIds = (notification.metadata?.userIds as string[]) || [];
+                        if (userIds.length === 0) {
+                            await notification.deleteOne();
+                            return null;
+                        }
+                        notification.body = await aggConfig.bodyBuilder(userIds.length, body, userIds);
+                        await notification.save();
+
+                        if (options.io) {
+                            options.io.to(`user:${recipientId}`).emit('notification', notification);
+                        }
+                        return notification;
+                    }
+                    return null;
+                } else {
+                    // Fallback to legacy count-based increment
+                    (insertData.metadata as any).count = 1;
+                    const notification = await notificationRepository.upsertByDedupeKey(
+                        dedupeKey,
+                        insertData,
+                        await aggConfig.bodyBuilder(1, body),
+                    );
+
+                    const currentCount = (notification.metadata as Record<string, unknown>)?.count as number || 1;
+                    if (currentCount > 1) {
+                        notification.body = await aggConfig.bodyBuilder(currentCount, body);
+                        await notification.save();
+                    }
+
+                    if (options.io) {
+                        options.io.to(`user:${recipientId}`).emit('notification', notification);
+                    }
+                    return notification;
                 }
-
-                // Emit socket update
-                if (options.io) {
-                    options.io.to(`user:${recipientId}`).emit('notification', notification);
-                }
-                return notification;
             }
 
             // Non-aggregated path: simple create with optional dedupeKey for idempotency

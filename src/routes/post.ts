@@ -3,19 +3,24 @@ import { protect, optionalAuth, requireCreator } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { createPostSchema, updatePostSchema, createCommentSchema } from '../utils/validators.js';
 import {
-    getMyPosts,
-    getCreatorPosts,
     getPostById,
     createPost,
     updatePost,
-    deletePost,
-    toggleLikePost,
-    getPostComments,
-    addPostComment,
+    deletePost
+} from '../controllers/postCrudControllers.js';
+import {
+    getMyPosts,
+    getCreatorPosts,
     getRecentVideos,
     getHomeFeed
-} from '../controllers/postControllers.js';
-
+} from '../controllers/feedControllers.js';
+import {
+    toggleLikePost,
+    toggleLikeComment,
+    getPostComments,
+    addPostComment,
+    votePoll
+} from '../controllers/interactionControllers.js';
 const router = Router();
 
 // Creator dashboard: my own posts (paginated, lean)
@@ -59,6 +64,9 @@ router.delete('/:id', protect, requireCreator, deletePost as RequestHandler);
 // Like / Unlike post
 router.post('/:id/like', protect, toggleLikePost as RequestHandler);
 
+// Vote on poll
+router.post('/:id/vote', protect, votePoll as RequestHandler);
+
 // Get comments
 router.get('/:id/comments', optionalAuth, getPostComments as RequestHandler);
 
@@ -69,5 +77,8 @@ router.post(
     validate(createCommentSchema),
     addPostComment as RequestHandler
 );
+
+// Like / Unlike comment
+router.post('/comments/:id/like', protect, toggleLikeComment as RequestHandler);
 
 export default router;

@@ -81,5 +81,51 @@ export const notificationRepository = {
             update,
             { new: true, upsert: true }
         );
+    },
+
+    /**
+     * Aggregates a list of users for a notification.
+     * Uses $addToSet or $pull on metadata.userIds.
+     */
+    aggregateUsersByDedupeKey: async (
+        dedupeKey: string,
+        userId: string,
+        action: 'add' | 'remove',
+        insertData: Record<string, unknown>
+    ) => {
+        const { metadata, ...rest } = insertData;
+        const setOnInsert: Record<string, unknown> = { ...rest, dedupeKey };
+        
+        if (metadata && typeof metadata === 'object') {
+            for (const [k, v] of Object.entries(metadata)) {
+                if (k !== 'userIds') {
+                    setOnInsert[`metadata.${k}`] = v;
+                }
+            }
+        }
+
+        const update: Record<string, unknown> = {
+            $set: { updatedAt: new Date() },
+        };
+
+        if (action === 'add') {
+            update.$addToSet = { 'metadata.userIds': userId };
+            (update.$set as any).isRead = false;
+            update.$setOnInsert = setOnInsert;
+            
+            // Clean up setOnInsert overlaps with $set
+            const setKeys = Object.keys(update.$set as Record<string, unknown>);
+            for (const key of setKeys) {
+                delete (update.$setOnInsert as Record<string, unknown>)[key];
+            }
+        } else {
+            update.$pull = { 'metadata.userIds': userId };
+        }
+
+        return Notification.findOneAndUpdate(
+            { dedupeKey },
+            update,
+            { new: true, upsert: action === 'add' }
+        );
     }
 };
