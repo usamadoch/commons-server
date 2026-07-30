@@ -146,6 +146,9 @@ export class TierService {
         const priceToCharge = interval === 'YEARLY' ? tier.price * 12 : tier.price;
         const safepayPlanToUse = interval === 'YEARLY' ? tier.safepayYearlyPlanId : tier.safepayPlanId;
 
+        // Start fetching the passport token immediately (independent of customer/tracker)
+        const authTokenPromise = getAuthToken();
+
         const customerToken = await getOrCreateSafepayCustomer(user);
         const tracker = await createTracker(priceToCharge, safepayPlanToUse, customerToken, "PKR", {
             mode: "payment",
@@ -153,7 +156,7 @@ export class TierService {
         });
 
         const trackerToken = tracker.token;
-        const authToken = await getAuthToken();
+        const authToken = await authTokenPromise;
 
         await subscriptionRepository.create({
             userId,

@@ -55,9 +55,10 @@ export const liveMessageService = {
         const tierData = tiers.find(t => amount >= t.minAmount);
         if (!tierData) throw createError.invalidInput('Amount is below minimum requirement');
 
+        const authTokenPromise = getAuthToken();
         const customerToken = await getOrCreateSafepayCustomer(user);
         const tracker = await createTracker(amount, null, customerToken, "PKR", { mode: "payment" });
-        const authToken = await getAuthToken();
+        const authToken = await authTokenPromise;
 
         const paidMsg = await paidLiveMessageRepository.create({
             sessionId: session._id,
@@ -82,10 +83,11 @@ export const liveMessageService = {
     },
 
     async setupTracker(user: any) {
+        const authTokenPromise = getAuthToken();
         const customerToken = await getOrCreateSafepayCustomer(user);
         // Using amount 1 for tokenization, some gateways require > 0
         const tracker = await createTracker(1, null, customerToken, "PKR", { mode: "instrument" });
-        const authToken = await getAuthToken();
+        const authToken = await authTokenPromise;
 
         return { trackerToken: tracker.token, authToken };
     },
