@@ -90,9 +90,23 @@ const mediaAttachmentSchema = z.discriminatedUnion('type', [
     videoAttachmentSchema,
 ]);
 
-export const createPostSchema = z.object({
+const pollOptionSchema = z.object({
+    text: z.string().min(1),
+    votes: z.number().default(0)
+});
+
+const pollSchema = z.object({
+    options: z.array(pollOptionSchema).min(2),
+    totalVotes: z.number().default(0),
+    allowMultiple: z.boolean().default(false),
+    endDate: z.string().nullable().optional(),
+});
+
+const createPostBaseSchema = z.object({
     caption: z.string().min(1, 'Caption is required').max(2200),
     mediaAttachments: z.array(mediaAttachmentSchema).max(10).default([]),
+    linkUrl: z.string().url().optional(),
+    poll: pollSchema.optional(),
     visibility: z.enum(['public', 'members']).default('public'),
     postType: z.enum(['text', 'image', 'video']).default('text'),
     tags: z.array(z.string().max(30)).max(10).default([]),
@@ -101,7 +115,26 @@ export const createPostSchema = z.object({
     scheduledFor: z.string().datetime().optional(),
 });
 
-export const updatePostSchema = createPostSchema.partial();
+const mutualExclusivityRefinement = (data: any, ctx: z.RefinementCtx) => {
+    const hasImages = data.mediaAttachments?.some((a: any) => a.type === 'image');
+    const hasVideo = data.mediaAttachments?.some((a: any) => a.type === 'video');
+    const hasLink = !!data.linkUrl;
+    const hasPoll = !!data.poll;
+
+    const typesPresent = [hasImages, hasVideo, hasLink, hasPoll].filter(Boolean).length;
+    
+    if (typesPresent > 1) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "A post can only contain one type of attachment (Images, Video, Link, OR Poll)",
+            path: ["mediaAttachments"],
+        });
+    }
+};
+
+export const createPostSchema = createPostBaseSchema.superRefine(mutualExclusivityRefinement);
+
+export const updatePostSchema = createPostBaseSchema.partial().superRefine(mutualExclusivityRefinement);
 
 // Page schemas
 export const updatePageSchema = z.object({
