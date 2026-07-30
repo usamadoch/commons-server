@@ -11,8 +11,14 @@ export const commentRepository = {
         return q;
     },
 
-    findById: (id: string | Types.ObjectId) => {
-        return Comment.findById(id);
+    findById: (id: string | Types.ObjectId, select?: string) => {
+        let q: any = Comment.findById(id);
+        if (select) q = q.select(select);
+        return q;
+    },
+
+    findByIdAndUpdateNew: (id: string | Types.ObjectId, update: Record<string, unknown>) => {
+        return Comment.findByIdAndUpdate(id, update, { new: true });
     },
 
     countDocuments: (query: Record<string, unknown>) => {
