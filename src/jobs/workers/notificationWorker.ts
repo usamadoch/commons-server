@@ -23,22 +23,29 @@ const processNotification = async (job: Job<NotificationJobData>): Promise<void>
     try {
         if (recipientIds && recipientIds.length > 0) {
             // Mass notification path
-            await NotificationService.sendMassNotification(
-                recipientIds,
-                type,
-                title,
-                body,
-                {
-                    actionUrl: actionUrl || '/',
-                    actionLabel,
-                    imageUrl,
-                    metadata,
-                    io: ioInstance
-                }
-            );
+            const shouldSendPush = metadata?.notifyPush !== false;
+
+            if (shouldSendPush) {
+                await NotificationService.sendMassNotification(
+                    recipientIds,
+                    type,
+                    title,
+                    body,
+                    {
+                        actionUrl: actionUrl || '/',
+                        actionLabel,
+                        imageUrl,
+                        metadata,
+                        io: ioInstance
+                    }
+                );
+            }
 
             // Enqueue email jobs for eligible types
-            if (type === 'new_post' && config.features.emailEnabled) {
+            const isNewPostEmail = type === 'new_post' && config.features.emailEnabled;
+            const isLiveEmail = type === 'creator_went_live' && config.features.emailEnabled && metadata?.notifyEmail === true;
+
+            if (isNewPostEmail || isLiveEmail) {
                 const users = await userRepository.find(
                     { _id: { $in: recipientIds } },
                     '_id email notificationPreferences'
@@ -46,10 +53,16 @@ const processNotification = async (job: Job<NotificationJobData>): Promise<void>
 
                 for (const user of users as any[]) {
                     const emailPrefs = user.notificationPreferences?.email;
-                    if (emailPrefs?.newPosts !== false) {
+                    let shouldEmail = true;
+                    
+                    if (isNewPostEmail && emailPrefs?.newPosts === false) {
+                        shouldEmail = false;
+                    }
+
+                    if (shouldEmail) {
                         await addEmailJob({
                             to: user.email,
-                            template: 'new-post',
+                            template: 'new-post', // Re-using generic template since it takes title/body/url
                             data: { title, body, actionUrl: actionUrl || '/', ...metadata },
                         });
                     }

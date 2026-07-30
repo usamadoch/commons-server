@@ -13,6 +13,7 @@ import { SubscriptionService } from './subscriptionService.js';
 import { Server as SocketIOServer } from 'socket.io';
 import { addNotificationJob } from '../jobs/queues.js';
 import { memberRepository } from '../repositories/memberRepository.js';
+import { liveMessageService } from './liveMessageService.js';
 
 // ============================================================================
 // SANITIZATION TYPES
@@ -192,7 +193,12 @@ export const liveSessionService = {
                     body: data.title || 'A live session has started',
                     actionUrl: `/live/${session._id}`,
                     actionLabel: 'Watch now',
-                    metadata: { sessionId: session._id.toString(), creatorId },
+                    metadata: { 
+                        sessionId: session._id.toString(), 
+                        creatorId,
+                        notifyPush: data.notifyPushOnLive !== false,
+                        notifyEmail: data.notifyEmailOnLive === true
+                    },
                 }).catch(err => console.error('[LiveSessionService] Failed to enqueue creator_went_live notification', err));
             }
         }
@@ -316,6 +322,7 @@ export const liveSessionService = {
 
         const updated = await liveSessionRepository.updateStatus(sessionId, 'ended', new Date());
         youtubeIntegration.stopYouTubePolling(sessionId);
+        liveMessageService.clearSessionCaches(sessionId);
 
         await CreatorPage.updateOne({ userId: creatorId }, { activeLiveSessionId: null });
 

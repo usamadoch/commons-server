@@ -9,8 +9,37 @@ import { appendToChatHistory, CommonsLiveMessage } from '../controllers/live/sha
 import { createError } from '../middleware/errorHandler.js';
 import { SubscriptionService } from './subscriptionService.js';
 import { creatorPageRepository } from '../repositories/creatorPageRepository.js';
+import mongoose from 'mongoose';
+
+// Rate limiting map: userId -> array of timestamps
+const chatRateLimits = new Map<string, number[]>();
+
+// Cache interfaces
+interface CachedSession {
+    _id: mongoose.Types.ObjectId | any;
+    status: string;
+    creatorId: mongoose.Types.ObjectId | any;
+}
+
+interface CachedCreatorPage {
+    displayName: string;
+    avatarUrl?: string | null;
+}
+
+const sessionCache = new Map<string, CachedSession>();
+const creatorCache = new Map<string, CachedCreatorPage | null>();
 
 export const liveMessageService = {
+    clearSessionCaches(sessionId: string) {
+        sessionCache.delete(sessionId);
+        // Clean up creator cache entries for this session
+        for (const key of creatorCache.keys()) {
+            if (key.startsWith(sessionId)) {
+                creatorCache.delete(key);
+            }
+        }
+    },
+
     async initiatePaidMessage(sessionId: string, amount: number, message: string, user: any) {
         if (!amount || amount < 100) throw createError.invalidInput('Invalid amount');
 
@@ -57,7 +86,7 @@ export const liveMessageService = {
         // Using amount 1 for tokenization, some gateways require > 0
         const tracker = await createTracker(1, null, customerToken, "PKR", { mode: "instrument" });
         const authToken = await getAuthToken();
-        
+
         return { trackerToken: tracker.token, authToken };
     },
 
@@ -66,7 +95,7 @@ export const liveMessageService = {
         if (!paidMsg) throw createError.notFound('Pending message not found');
 
         const customerToken = await getOrCreateSafepayCustomer(user);
-        
+
         let tokenToCharge = paymentMethodToken;
         if (!tokenToCharge) {
             const savedMethod = await getSavedPaymentMethod(customerToken);
@@ -150,8 +179,27 @@ export const liveMessageService = {
     },
 
     async sendChatMessage(io: SocketIOServer, sessionId: string, message: string, user: any) {
-        const session = await liveSessionRepository.findById(sessionId);
-        if (!session) throw createError.notFound('Session not found');
+        const now = Date.now();
+        const userIdStr = user._id.toString();
+
+        let userWindow = chatRateLimits.get(userIdStr) || [];
+        userWindow = userWindow.filter(t => now - t < 3000);
+
+        if (userWindow.length >= 5) {
+            throw createError.rateLimited('You are sending messages too fast. Please slow down.');
+        }
+
+        userWindow.push(now);
+        chatRateLimits.set(userIdStr, userWindow);
+
+        let session = sessionCache.get(sessionId);
+        if (!session) {
+            const dbSession = await liveSessionRepository.findById(sessionId);
+            if (!dbSession) throw createError.notFound('Session not found');
+            session = { _id: dbSession._id, status: dbSession.status, creatorId: dbSession.creatorId };
+            sessionCache.set(sessionId, session);
+        }
+
         if (session.status !== 'live') throw createError.invalidInput('Session is not live');
 
         const mute = await ChatMute.findOne({ sessionId: session._id, userId: user._id });
@@ -163,10 +211,20 @@ export const liveMessageService = {
         let finalSenderAvatar = user.avatarUrl || null;
 
         if (session.creatorId) {
-            const creatorPage = await creatorPageRepository.findOne({ _id: session.creatorId, userId: user._id }).lean();
-            if (creatorPage) {
-                finalSenderName = creatorPage.displayName;
-                finalSenderAvatar = creatorPage.avatarUrl || null;
+            const cacheKey = `${sessionId}_${userIdStr}`;
+            if (!creatorCache.has(cacheKey)) {
+                const creatorPage = await creatorPageRepository.findOne({ _id: session.creatorId, userId: user._id }).lean();
+                if (creatorPage) {
+                    creatorCache.set(cacheKey, { displayName: creatorPage.displayName, avatarUrl: creatorPage.avatarUrl });
+                } else {
+                    creatorCache.set(cacheKey, null);
+                }
+            }
+
+            const cachedCreator = creatorCache.get(cacheKey);
+            if (cachedCreator) {
+                finalSenderName = cachedCreator.displayName;
+                finalSenderAvatar = cachedCreator.avatarUrl || null;
             }
         }
 

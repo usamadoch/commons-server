@@ -18,8 +18,28 @@ interface AuthenticatedSocket extends Socket {
 
 // Connected users map: userId -> socketId
 const connectedUsers = new Map<string, string>();
+export const sessionPeakViewers = new Map<string, number>();
 
 export const initializeSockets = (io: SocketIOServer): void => {
+    // Sync peak viewer counts to DB every 15 seconds
+    setInterval(() => {
+        if (sessionPeakViewers.size === 0) return;
+        sessionPeakViewers.forEach(async (peakCount, sessionId) => {
+            try {
+                await LiveSession.updateOne(
+                    { _id: sessionId, status: 'live' },
+                    { $max: { peakViewerCount: peakCount } }
+                );
+                const roomSize = io.sockets.adapter.rooms.get(`live:${sessionId}`)?.size || 0;
+                if (roomSize === 0) {
+                    sessionPeakViewers.delete(sessionId);
+                }
+            } catch (error) {
+                console.error(`Failed to update peak viewer count for ${sessionId}`, error);
+            }
+        });
+    }, 15000);
+
     // Authentication middleware for sockets
     io.use(async (socket: AuthenticatedSocket, next) => {
         try {
@@ -39,7 +59,6 @@ export const initializeSockets = (io: SocketIOServer): void => {
             if (!token) {
                 // Allow unauthenticated connections for public rooms
                 // They just won't have user info
-                console.log('Socket connected without auth');
                 return next();
             }
 
@@ -59,7 +78,6 @@ export const initializeSockets = (io: SocketIOServer): void => {
             next();
         } catch (error) {
             // Allow connection but without user info
-            console.log('Socket auth error, connecting anonymously');
             next();
         }
     });
@@ -74,8 +92,6 @@ export const initializeSockets = (io: SocketIOServer): void => {
             // Join personal room for notifications
             socket.join(`user:${userId}`);
 
-            console.log(`User connected: ${userId}`);
-
             // Broadcast online status
             socket.broadcast.emit('user_online', { userId });
         }
@@ -83,13 +99,11 @@ export const initializeSockets = (io: SocketIOServer): void => {
         // Join conversation room
         socket.on('join_room', ({ conversationId }: { conversationId: string }) => {
             socket.join(`conversation:${conversationId}`);
-            console.log(`User ${userId} joined conversation:${conversationId}`);
         });
 
         // Leave conversation room
         socket.on('leave_room', ({ conversationId }: { conversationId: string }) => {
             socket.leave(`conversation:${conversationId}`);
-            console.log(`User ${userId} left conversation:${conversationId}`);
         });
 
         // Typing indicator
@@ -128,16 +142,11 @@ export const initializeSockets = (io: SocketIOServer): void => {
         // Join live session room (works for both authenticated and anonymous sockets)
         socket.on('join_session', async ({ sessionId }: { sessionId: string }) => {
             socket.join(`live:${sessionId}`);
-            console.log(`Socket ${socket.id} joined live:${sessionId}`);
 
-            try {
-                const roomSockets = await io.in(`live:${sessionId}`).fetchSockets();
-                await LiveSession.updateOne(
-                    { _id: sessionId, status: 'live' },
-                    { $max: { peakViewerCount: roomSockets.length } }
-                );
-            } catch (error) {
-                console.error('Failed to update peak viewer count', error);
+            const roomSize = io.sockets.adapter.rooms.get(`live:${sessionId}`)?.size || 0;
+            const currentPeak = sessionPeakViewers.get(sessionId) || 0;
+            if (roomSize > currentPeak) {
+                sessionPeakViewers.set(sessionId, roomSize);
             }
 
             // Send cached chat history to this socket only (not the whole room)
@@ -149,15 +158,12 @@ export const initializeSockets = (io: SocketIOServer): void => {
 
         socket.on('leave_session', ({ sessionId }: { sessionId: string }) => {
             socket.leave(`live:${sessionId}`);
-            console.log(`Socket ${socket.id} left live:${sessionId}`);
         });
 
-        // Disconnect handler
         socket.on('disconnect', () => {
             if (userId) {
                 connectedUsers.delete(userId);
                 socket.broadcast.emit('user_offline', { userId });
-                console.log(`User disconnected: ${userId}`);
             }
         });
     });
