@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest, ONBOARDING_STEPS } from '../types/index.js';
 import * as authService from '../services/authService.js';
 import config from '../config/index.js';
+import { generateToken } from '../middleware/csrf.js';
 
 // Cookie options
 // Cookie options
@@ -11,6 +12,23 @@ const cookieOptions = {
     sameSite: config.env === 'production' ? 'none' as const : 'lax' as const,
     path: '/',
     // domain: config.env === 'production' ? '.onrender.com' : undefined // REMOVE: onrender.com is a public suffix
+};
+
+// CSRF Token controller
+export const getCsrfToken = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): void => {
+    try {
+        const csrfToken = generateToken(req, res);
+        res.json({
+            success: true,
+            data: { csrfToken },
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
 // Signup controller

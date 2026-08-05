@@ -96,19 +96,27 @@ app.use(cors({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-csrf-token']
 }));
 
 // JSON body parsing — skip routes that need raw body for HMAC signature verification
 app.use((req, res, next) => {
-    const url = req.originalUrl;
-    if (url.includes('/media/mux/webhook') || url.includes('/webhooks/safepay')) {
+    if (req.path === '/media/mux/webhook' || req.path === '/webhooks/safepay') {
         return next();
     }
     express.json({ limit: '10mb' })(req, res, next);
 });
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser(config.cookie.secret));
+
+// Apply CSRF protection to all routes except webhooks
+import { doubleCsrfProtection } from './middleware/csrf.js';
+app.use((req, res, next) => {
+    if (req.path === '/media/mux/webhook' || req.path === '/webhooks/safepay') {
+        return next();
+    }
+    doubleCsrfProtection(req, res, next);
+});
 
 // Static files (uploads)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

@@ -143,9 +143,18 @@ export const errorHandler = (
     _next: NextFunction
 ): void => {
     // Log error with correlation ID
-    const isAppError = err instanceof AppError;
-    const statusCode = isAppError ? err.statusCode : 500;
-    const code = isAppError ? err.code : ErrorCodes.SERVER_ERROR;
+    let isAppError = err instanceof AppError;
+    let statusCode = isAppError ? (err as AppError).statusCode : 500;
+    let code = isAppError ? (err as AppError).code : ErrorCodes.SERVER_ERROR;
+    let message = isAppError ? err.message : 'An unexpected error occurred';
+
+    // Handle CSRF-CSRF token error
+    if (err && (err as any).code === 'EBADCSRFTOKEN' || (err && (err as any).message === 'invalid csrf token')) {
+        isAppError = true;
+        statusCode = 403;
+        code = ErrorCodes.FORBIDDEN;
+        message = 'Invalid CSRF token';
+    }
 
     const logData = {
         errorLog: {
@@ -156,7 +165,7 @@ export const errorHandler = (
             stack: err.stack,
             statusCode,
             code,
-            isOperational: isAppError && err.isOperational,
+            isOperational: isAppError ? (err as AppError).isOperational : false,
         },
         // Production-friendly flat fields for JSON format
         correlationId: req.correlationId,
@@ -168,21 +177,21 @@ export const errorHandler = (
         code,
     };
 
-    if (isAppError && err.isOperational) {
+    if (isAppError && (err as AppError).isOperational) {
         logger.warn('Operational error', logData);
     } else {
         logger.error('Unexpected error', logData);
     }
 
     // Build response
-    const message = isAppError ? err.message : 'An unexpected error occurred';
+    const responseMessage = message; // Use the message we potentially modified for CSRF
 
     const response: ErrorResponse = {
         success: false,
         error: {
             code,
-            message,
-            ...(isAppError && err.details && { details: err.details }),
+            message: responseMessage,
+            ...(isAppError && (err as AppError).details && { details: (err as AppError).details }),
         },
     };
 

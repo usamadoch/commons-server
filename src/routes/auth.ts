@@ -20,6 +20,18 @@ const asAuthHandler = (handler: (
 
 /**
  * @swagger
+ * /auth/csrf:
+ *   get:
+ *     summary: Get CSRF token
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: CSRF token successfully retrieved
+ */
+router.get('/csrf', authController.getCsrfToken);
+
+/**
+ * @swagger
  * /auth/signup:
  *   post:
  *     summary: Register a new user
