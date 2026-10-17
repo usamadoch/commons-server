@@ -4,6 +4,7 @@ import { creatorPageRepository } from '../repositories/creatorPageRepository.js'
 import { memberRepository } from '../repositories/memberRepository.js';
 import { postLikeRepository } from '../repositories/postLikeRepository.js';
 import { postViewRepository } from '../repositories/postViewRepository.js';
+import { postViewDedupRepository } from '../repositories/postViewDedupRepository.js';
 import { commentRepository } from '../repositories/commentRepository.js';
 import PollVote from '../models/PollVote.js';
 import { addNotificationJob } from '../jobs/queues.js';
@@ -58,35 +59,83 @@ export const postCrudService = {
         };
     },
 
-    async recordPostView(postId: string, userId: string | null, sessionId: string) {
-        const post = await postRepository.findById(postId, '_id viewCount');
-        if (!post) throw createError.notFound('Post');
-
-        // Deduplication query: check if this user or session already viewed the post within the last 12 hours
-        const query: Record<string, unknown> = { postId: post._id };
-        if (userId) {
-            query.userId = userId;
-        } else {
-            query.sessionId = sessionId;
+    async recordPostView(postId: string, userId: string | null, visitorId: string) {
+        if (!Types.ObjectId.isValid(postId)) {
+            throw createError.invalidInput('Invalid post ID');
         }
 
-        const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
-        const existingView = await postViewRepository.findOne({
-            ...query,
-            viewedAt: { $gte: twelveHoursAgo }
-        });
+        const post = await postRepository.findById(postId, '_id creatorId status viewCount');
+        if (!post) throw createError.notFound('Post');
 
-        if (!existingView) {
+        // Only published posts may record public views
+        if (post.status !== 'published') {
+            throw createError.notFound('Post');
+        }
+
+        // Creators do not count views of their own posts
+        const postCreatorId = typeof post.creatorId === 'object' && (post.creatorId as any)._id
+            ? (post.creatorId as any)._id.toString()
+            : post.creatorId.toString();
+
+        if (userId && postCreatorId === userId.toString()) {
+            return { recorded: false, viewCount: post.viewCount || 0 };
+        }
+
+        const viewerKey = userId ? `u:${userId}` : `v:${visitorId}`;
+        const now = new Date();
+        const twelveHoursMs = 12 * 60 * 60 * 1000;
+        const twelveHoursAgo = new Date(now.getTime() - twelveHoursMs);
+        const newExpiresAt = new Date(now.getTime() + twelveHoursMs);
+
+        let isNewView = false;
+
+        // Step 1: Attempt atomic update on an expired cooldown record
+        const refreshed = await postViewDedupRepository.findOneAndUpdate(
+            {
+                postId: post._id,
+                viewerKey,
+                viewedAt: { $lt: twelveHoursAgo },
+            },
+            {
+                $set: {
+                    viewedAt: now,
+                    expiresAt: newExpiresAt,
+                },
+            },
+            { new: true }
+        );
+
+        if (refreshed) {
+            isNewView = true;
+        } else {
+            // Step 2: Attempt to insert a new dedup record
+            try {
+                await postViewDedupRepository.create({
+                    postId: post._id,
+                    viewerKey,
+                    viewedAt: now,
+                    expiresAt: newExpiresAt,
+                });
+                isNewView = true;
+            } catch (error: any) {
+                if (error.code === 11000) {
+                    // Unique constraint violation: duplicate request within active cooldown
+                    return { recorded: false, viewCount: post.viewCount || 0 };
+                }
+                throw error;
+            }
+        }
+
+        if (isNewView) {
             await Promise.all([
-                postViewRepository.updateOne(
-                    query,
-                    {
-                        $set: { viewedAt: new Date() },
-                        $setOnInsert: { userId: userId || null, sessionId },
-                    },
-                    { upsert: true }
-                ),
-                postRepository.updateOne({ _id: post._id }, { $inc: { viewCount: 1 } })
+                postRepository.updateOne({ _id: post._id }, { $inc: { viewCount: 1 } }),
+                postViewRepository.create({
+                    postId: post._id,
+                    userId: userId ? new Types.ObjectId(userId) : null,
+                    sessionId: viewerKey,
+                    viewedAt: now,
+                    duration: 0,
+                }),
             ]);
             return { recorded: true, viewCount: (post.viewCount || 0) + 1 };
         }
@@ -226,6 +275,7 @@ export const postCrudService = {
         Promise.all([
             postLikeRepository.deleteMany({ postId: post._id }),
             postViewRepository.deleteMany({ postId: post._id }),
+            postViewDedupRepository.deleteMany({ postId: post._id }),
             commentRepository.deleteMany({ postId: post._id }),
         ]).catch(err => console.error(`[PostCrudService] Failed to perform cascading deletes for post ${post._id}`, err));
 

@@ -17,8 +17,8 @@ export const getPostById = async (req: MaybeAuthenticatedRequest, res: Response,
 
 export const recordPostView = async (req: MaybeAuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const sessionId = req.cookies?.sessionId || req.ip || 'anonymous';
-        const result = await postCrudService.recordPostView(req.params.id as string, req.user?._id?.toString() || null, sessionId);
+        const visitorId = (req as any).visitorId || req.signedCookies?.visitorId || req.ip || 'anonymous';
+        const result = await postCrudService.recordPostView(req.params.id as string, req.user?._id?.toString() || null, visitorId);
         
         res.json({
             success: true,

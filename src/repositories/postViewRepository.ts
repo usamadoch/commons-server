@@ -15,6 +15,10 @@ export const postViewRepository = {
 
     deleteMany: (query: Record<string, unknown>) => {
         return PostView.deleteMany(query);
+    },
+
+    create: (data: Record<string, unknown>) => {
+        return PostView.create(data);
     }
 };
 
