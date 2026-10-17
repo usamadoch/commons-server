@@ -4,6 +4,7 @@ import { validate } from '../middleware/validate.js';
 import { createPostSchema, updatePostSchema, createCommentSchema } from '../utils/validators.js';
 import {
     getPostById,
+    recordPostView,
     createPost,
     updatePost,
     deletePost
@@ -39,6 +40,9 @@ router.get('/feed', protect, getHomeFeed as RequestHandler);
 
 // Get single post
 router.get('/:id', optionalAuth, getPostById as RequestHandler);
+
+// Record post view
+router.post('/:id/view', optionalAuth, recordPostView as RequestHandler);
 
 // Create post (creator only)
 router.post(

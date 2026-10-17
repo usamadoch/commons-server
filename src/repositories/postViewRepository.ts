@@ -9,6 +9,10 @@ export const postViewRepository = {
         return PostView.updateOne(query, update, options);
     },
 
+    findOne: (query: Record<string, unknown>) => {
+        return PostView.findOne(query);
+    },
+
     deleteMany: (query: Record<string, unknown>) => {
         return PostView.deleteMany(query);
     }

@@ -15,7 +15,7 @@ import { sanitizePostForClient } from '../utils/postSanitizer.js';
 import { AccessContext } from '../utils/postAccessControl.js';
 
 export const postCrudService = {
-    async getPostById(postId: string, userId: string | null, sessionId: string) {
+    async getPostById(postId: string, userId: string | null) {
         const post = await postRepository.findByIdPopulated(postId);
         if (!post) throw createError.notFound('Post');
 
@@ -36,18 +36,6 @@ export const postCrudService = {
 
         const ctx: AccessContext = { userId, isOwner, isMember };
 
-        await Promise.all([
-            postViewRepository.updateOne(
-                { postId: post._id, sessionId },
-                {
-                    $set: { viewedAt: new Date() },
-                    $setOnInsert: { userId: userId || null },
-                },
-                { upsert: true }
-            ),
-            postRepository.updateOne({ _id: post._id }, { $inc: { viewCount: 1 } })
-        ]);
-
         let isLiked = false;
         let userVotedOptions: number[] | undefined = undefined;
         if (userId) {
@@ -62,12 +50,48 @@ export const postCrudService = {
         return {
             post: { 
                 ...sanitizedPost, 
-                viewCount: (post.viewCount || 0) + 1, 
+                viewCount: post.viewCount || 0, 
                 isLiked,
                 ...(userVotedOptions ? { userVotedOptions } : {})
             },
             isLiked
         };
+    },
+
+    async recordPostView(postId: string, userId: string | null, sessionId: string) {
+        const post = await postRepository.findById(postId, '_id viewCount');
+        if (!post) throw createError.notFound('Post');
+
+        // Deduplication query: check if this user or session already viewed the post within the last 12 hours
+        const query: Record<string, unknown> = { postId: post._id };
+        if (userId) {
+            query.userId = userId;
+        } else {
+            query.sessionId = sessionId;
+        }
+
+        const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+        const existingView = await postViewRepository.findOne({
+            ...query,
+            viewedAt: { $gte: twelveHoursAgo }
+        });
+
+        if (!existingView) {
+            await Promise.all([
+                postViewRepository.updateOne(
+                    query,
+                    {
+                        $set: { viewedAt: new Date() },
+                        $setOnInsert: { userId: userId || null, sessionId },
+                    },
+                    { upsert: true }
+                ),
+                postRepository.updateOne({ _id: post._id }, { $inc: { viewCount: 1 } })
+            ]);
+            return { recorded: true, viewCount: (post.viewCount || 0) + 1 };
+        }
+
+        return { recorded: false, viewCount: post.viewCount || 0 };
     },
 
     async createPost(userId: string | Types.ObjectId, data: any, io: any) {

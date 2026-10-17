@@ -4,8 +4,21 @@ import { postCrudService } from '../services/postCrudService.js';
 
 export const getPostById = async (req: MaybeAuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
+        const result = await postCrudService.getPostById(req.params.id as string, req.user?._id?.toString() || null);
+        
+        res.json({
+            success: true,
+            data: result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const recordPostView = async (req: MaybeAuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
         const sessionId = req.cookies?.sessionId || req.ip || 'anonymous';
-        const result = await postCrudService.getPostById(req.params.id as string, req.user?._id?.toString() || null, sessionId);
+        const result = await postCrudService.recordPostView(req.params.id as string, req.user?._id?.toString() || null, sessionId);
         
         res.json({
             success: true,

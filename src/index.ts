@@ -109,10 +109,14 @@ app.use((req, res, next) => {
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser(config.cookie.secret));
 
-// Apply CSRF protection to all routes except webhooks
+// Apply CSRF protection to all routes except webhooks and public view tracking
 import { doubleCsrfProtection } from './middleware/csrf.js';
 app.use((req, res, next) => {
-    if (req.path === '/media/mux/webhook' || req.path === '/webhooks/safepay') {
+    if (
+        req.path === '/media/mux/webhook' || 
+        req.path === '/webhooks/safepay' ||
+        /^\/posts\/[a-fA-F0-9]{24}\/view$/.test(req.path)
+    ) {
         return next();
     }
     doubleCsrfProtection(req, res, next);
