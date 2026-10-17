@@ -48,6 +48,11 @@ const rateLimitConfigs: Record<string, RateLimitConfig> = {
         max: 100,
         message: 'Too many requests, please slow down',
     },
+    postView: {
+        windowMs: 60 * 1000, // 1 minute
+        max: 30, // 30 views per minute per IP/user
+        message: 'Too many view requests, please slow down',
+    },
 };
 
 // Create rate limiter with optional Redis store
@@ -110,5 +115,6 @@ export const joinMembershipLimiter = createRateLimiter('joinMembership');
 export const sendMessageLimiter = createRateLimiter('sendMessage');
 export const uploadLimiter = createRateLimiter('upload');
 export const apiLimiter = createRateLimiter('api');
+export const postViewLimiter = createRateLimiter('postView');
 
 export default createRateLimiter;

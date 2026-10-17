@@ -17,6 +17,7 @@ import swaggerUi from 'swagger-ui-express';
 
 // Middleware
 import { apiLimiter } from './middleware/rateLimiter.js';
+import { visitorIdMiddleware } from './middleware/visitorId.js';
 
 // Config
 import config from './config/index.js';
@@ -108,6 +109,7 @@ app.use((req, res, next) => {
 });
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser(config.cookie.secret));
+app.use(visitorIdMiddleware);
 
 // Apply CSRF protection to all routes except webhooks and public view tracking
 import { doubleCsrfProtection } from './middleware/csrf.js';

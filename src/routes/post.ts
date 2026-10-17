@@ -1,5 +1,6 @@
 import { Router, RequestHandler } from 'express';
 import { protect, optionalAuth, requireCreator } from '../middleware/auth.js';
+import { postViewLimiter } from '../middleware/rateLimiter.js';
 import { validate } from '../middleware/validate.js';
 import { createPostSchema, updatePostSchema, createCommentSchema } from '../utils/validators.js';
 import {
@@ -42,7 +43,7 @@ router.get('/feed', protect, getHomeFeed as RequestHandler);
 router.get('/:id', optionalAuth, getPostById as RequestHandler);
 
 // Record post view
-router.post('/:id/view', optionalAuth, recordPostView as RequestHandler);
+router.post('/:id/view', postViewLimiter, optionalAuth, recordPostView as RequestHandler);
 
 // Create post (creator only)
 router.post(
