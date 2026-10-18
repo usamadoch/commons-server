@@ -89,7 +89,11 @@ app.use(requestLogger);
 app.use(cors({
     origin: (origin, callback) => {
         const allowedOrigins = config.clientUrl.split(',').map(url => url.trim());
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        const isStaging = config.env === 'staging' || process.env.APP_ENV === 'staging';
+        // In staging, also permit dynamic Vercel Preview deployments (*.vercel.app)
+        const isVercelPreview = isStaging && Boolean(origin && /^https:\/\/[a-zA-Z0-9_.-]+\.vercel\.app$/.test(origin));
+
+        if (!origin || allowedOrigins.indexOf(origin) !== -1 || isVercelPreview) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));

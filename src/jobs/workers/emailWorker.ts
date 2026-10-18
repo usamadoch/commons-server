@@ -30,7 +30,7 @@ import { Worker, Job } from 'bullmq';
 import config from '../../config/index.js';
 import { logger } from '../../config/logger.js';
 import { ioRedis } from '../../config/redis.js';
-import { QUEUE_NAMES, EmailJobData } from '../queues.js';
+import { QUEUE_NAMES, QUEUE_PREFIX, EmailJobData } from '../queues.js';
 import { sendEmail } from '../../services/emailService.js';
 
 let worker: Worker<EmailJobData> | null = null;
@@ -71,6 +71,7 @@ export const startEmailWorker = (): void => {
         processEmail,
         {
             connection: ioRedis as any,
+            prefix: QUEUE_PREFIX,
             concurrency: 3,
         }
     );

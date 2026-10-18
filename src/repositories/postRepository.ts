@@ -30,7 +30,7 @@ export const postRepository = {
         let q: any = Post.find(query);
         if (sort) q = q.sort(sort);
         if (limit !== undefined) q = q.limit(limit);
-        return q.populate(populateField, populateSelect);
+        return q.populate(populateField, populateSelect).lean();
     },
 
     findById: (id: string | Types.ObjectId, select?: string) => {
@@ -42,7 +42,8 @@ export const postRepository = {
     findByIdPopulated: (id: string | Types.ObjectId) => {
         return Post.findById(id)
             .populate('creatorId', 'displayName username avatarUrl')
-            .populate('pageId', 'pageSlug displayName avatarUrl');
+            .populate('pageId', 'pageSlug displayName avatarUrl')
+            .lean();
     },
 
     countDocuments: (query: Record<string, unknown>) => {

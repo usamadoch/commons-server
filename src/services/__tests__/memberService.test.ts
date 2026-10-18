@@ -73,92 +73,13 @@ describe('MemberService', () => {
     });
 
     describe('joinCreator', () => {
-        it('should throw error if page does not exist', async () => {
-            CreatorPage.findById.mockResolvedValue(null);
-
+        it('should throw forbidden error as free joining is disabled in favor of paid subscriptions', async () => {
             await expect(MemberService.joinCreator({
                 memberId: mockMemberId,
                 creatorId: mockCreatorId,
                 pageId: mockPageId,
                 memberDisplayName: mockMemberDisplayName,
-            })).rejects.toEqual(createError.notFound('Page not found'));
-        });
-
-        it('should throw error if already an active member', async () => {
-            CreatorPage.findById.mockResolvedValue({ _id: mockPageId } as unknown as ICreatorPageDocument);
-            Member.findOne.mockResolvedValue({ status: 'active' } as unknown as IMemberDocument);
-
-            await expect(MemberService.joinCreator({
-                memberId: mockMemberId,
-                creatorId: mockCreatorId,
-                pageId: mockPageId,
-                memberDisplayName: mockMemberDisplayName,
-            })).rejects.toEqual(createError.conflict('Already a member'));
-        });
-
-        it('should reactivate member if status is cancelled', async () => {
-            const mockMembership = {
-                status: 'cancelled',
-                joinedAt: new Date('2023-01-01'),
-                cancelledAt: new Date('2023-02-01'),
-                save: jest.fn(),
-                _id: mockMembershipId
-            } as unknown as IMemberDocument;
-
-            CreatorPage.findById.mockResolvedValue({ _id: mockPageId } as unknown as ICreatorPageDocument);
-            Member.findOne.mockResolvedValue(mockMembership);
-
-            await MemberService.joinCreator({
-                memberId: mockMemberId,
-                creatorId: mockCreatorId,
-                pageId: mockPageId,
-                memberDisplayName: mockMemberDisplayName,
-            });
-
-            expect(mockMembership.status).toBe('active');
-            expect(mockMembership.cancelledAt).toBeNull();
-            expect(mockMembership.save).toHaveBeenCalled();
-            expect(CreatorPage.updateOne).toHaveBeenCalledWith(
-                { _id: mockPageId },
-                { $inc: { memberCount: 1 } }
-            );
-        });
-
-        it('should create new member if none exists', async () => {
-            CreatorPage.findById.mockResolvedValue({ _id: mockPageId } as unknown as ICreatorPageDocument);
-            Member.findOne.mockResolvedValue(null);
-            const mockNewMembership = { _id: mockMembershipId } as unknown as IMemberDocument;
-            Member.create.mockResolvedValue(mockNewMembership);
-
-            await MemberService.joinCreator({
-                memberId: mockMemberId,
-                creatorId: mockCreatorId,
-                pageId: mockPageId,
-                memberDisplayName: mockMemberDisplayName,
-                io: mockIo
-            });
-
-            expect(Member.create).toHaveBeenCalledWith({
-                memberId: mockMemberId,
-                creatorId: mockCreatorId,
-                pageId: mockPageId,
-            });
-            expect(CreatorPage.updateOne).toHaveBeenCalledWith(
-                { _id: mockPageId },
-                { $inc: { memberCount: 1 } }
-            );
-            expect(NotificationService.sendNotification).toHaveBeenCalledWith(
-                mockCreatorId,
-                'new_member',
-                'New member!',
-                `${mockMemberDisplayName} joined`,
-                {
-                    actionUrl: '/members',
-                    actionLabel: 'View members',
-                    metadata: { memberId: mockMemberId, membershipId: mockMembershipId },
-                    io: mockIo
-                }
-            );
+            })).rejects.toEqual(createError.forbidden('Free joining is disabled. A paid subscription is required to join.'));
         });
     });
 

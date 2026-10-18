@@ -7,7 +7,11 @@
     "start": "node dist/index.js",
     "dev": "nodemon -e ts,js --watch src --exec tsx src/index.ts",
     "build": "tsc && tsc-alias",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:smoke": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/integration/smoke.test.ts --forceExit",
+    "bench:baseline": "node scripts/api-baseline.js",
+    "test:load:smoke": "node scripts/load-test-20vu.js --smoke",
+    "test:load": "node scripts/load-test-20vu.js"
   },
   "keywords": [],
   "author": "",

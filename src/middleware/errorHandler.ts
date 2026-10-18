@@ -29,10 +29,12 @@ export class AppError extends Error {
         details?: Record<string, string[]>
     ) {
         super(message || ErrorMessages[code]);
+        this.name = 'AppError';
         this.code = code;
         this.statusCode = ErrorStatusCodes[code];
         this.details = details;
         this.isOperational = true; // Distinguishes from programming errors
+        Object.setPrototypeOf(this, AppError.prototype);
         Error.captureStackTrace(this, this.constructor);
     }
 }
@@ -143,9 +145,9 @@ export const errorHandler = (
     _next: NextFunction
 ): void => {
     // Log error with correlation ID
-    let isAppError = err instanceof AppError;
-    let statusCode = isAppError ? (err as AppError).statusCode : 500;
-    let code = isAppError ? (err as AppError).code : ErrorCodes.SERVER_ERROR;
+    let isAppError = err instanceof AppError || (Boolean(err) && (err as any).isOperational === true);
+    let statusCode = isAppError ? ((err as AppError).statusCode || 500) : 500;
+    let code = isAppError ? ((err as AppError).code || ErrorCodes.SERVER_ERROR) : ErrorCodes.SERVER_ERROR;
     let message = isAppError ? err.message : 'An unexpected error occurred';
 
     // Handle CSRF-CSRF token error

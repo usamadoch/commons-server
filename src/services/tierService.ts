@@ -6,6 +6,7 @@ import { Types } from 'mongoose';
 
 import { getOrCreateSafepayCustomer, createTracker, getAuthToken, createSafepayPlan, getSafepayTrackerStatus } from './safepayService.js';
 import { SubscriptionService } from './subscriptionService.js';
+import { cacheService, cacheKeys } from '../config/redis.js';
 
 
 interface CreatePlanInput {
@@ -65,11 +66,30 @@ export class TierService {
             status: input.status || 'draft',
         });
 
+        // Invalidate cached tiers if published
+        if (input.status === 'published') {
+            cacheService.del(cacheKeys.creatorTiers(creatorId.toString())).catch(() => {});
+        }
+
         return plan;
     }
 
     static async getCreatorPlans(creatorId: string) {
-        return tierRepository.findPublishedByCreatorId(creatorId, { price: 1 });
+        const cacheKey = cacheKeys.creatorTiers(creatorId);
+
+        // 1. Check Redis cache (TTL 600s = 10m)
+        const cachedPlans = await cacheService.get<any[]>(cacheKey);
+        if (cachedPlans) {
+            return cachedPlans;
+        }
+
+        // 2. Query MongoDB with .lean()
+        const plans = await tierRepository.findPublishedByCreatorId(creatorId, { price: 1 });
+
+        // 3. Cache result
+        await cacheService.set(cacheKey, plans, 600);
+
+        return plans;
     }
 
     static async getMyPlans(creatorId: Types.ObjectId) {
@@ -106,6 +126,9 @@ export class TierService {
             throw createError.notFound('Plan');
         }
 
+        // Invalidate cached tiers on plan update
+        cacheService.del(cacheKeys.creatorTiers(creatorId.toString())).catch(() => {});
+
         return plan;
     }
 
@@ -133,6 +156,9 @@ export class TierService {
         if (!plan) {
             throw createError.notFound('Plan');
         }
+
+        // Invalidate cached tiers on price update
+        cacheService.del(cacheKeys.creatorTiers(creatorId.toString())).catch(() => {});
 
         return plan;
     }

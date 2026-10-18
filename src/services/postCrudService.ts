@@ -14,6 +14,7 @@ import { addMediaCleanupJob } from '../jobs/queues.js';
 import { createError } from '../middleware/errorHandler.js';
 import { sanitizePostForClient } from '../utils/postSanitizer.js';
 import { AccessContext } from '../utils/postAccessControl.js';
+import { cacheService, cacheKeys } from '../config/redis.js';
 
 export const postCrudService = {
     async getPostById(postId: string, userId: string | null) {
@@ -144,7 +145,7 @@ export const postCrudService = {
     },
 
     async createPost(userId: string | Types.ObjectId, data: any, io: any) {
-        const creatorPage = await creatorPageRepository.findOne({ userId }, '_id displayName');
+        const creatorPage = await creatorPageRepository.findOne({ userId }, '_id displayName pageSlug');
         if (!creatorPage) throw createError.notFound('Creator page');
 
         const attachments = data.mediaAttachments || [];
@@ -209,6 +210,10 @@ export const postCrudService = {
         if (post.status === 'published') {
             await creatorPageRepository.updateOne({ _id: creatorPage._id }, { $inc: { postCount: 1 } });
 
+            // Invalidate cached public feed and creator page so stats update immediately
+            cacheService.invalidatePattern(cacheKeys.creatorFeedPattern(creatorPage.pageSlug)).catch(() => {});
+            cacheService.del(cacheKeys.creatorPage(creatorPage.pageSlug)).catch(() => {});
+
             const members = await memberRepository.find({ creatorId: userId, status: 'active' }, 'memberId');
             if (members.length > 0) {
                 const recipientIds = members.map((m: any) => m.memberId.toString());
@@ -240,9 +245,12 @@ export const postCrudService = {
         const updatedPost = await postRepository.findByIdAndUpdateNew(postId, updateData);
 
         if (!wasPublished && updatedPost && updatedPost.status === 'published') {
-            const page = await creatorPageRepository.findById(updatedPost.pageId, '_id displayName');
+            // Post transitioning draft -> published: increment postCount & invalidate cache
+            const page = await creatorPageRepository.findById(updatedPost.pageId, '_id displayName pageSlug');
             if (page) {
                 await creatorPageRepository.updateOne({ _id: page._id }, { $inc: { postCount: 1 } });
+                cacheService.invalidatePattern(cacheKeys.creatorFeedPattern(page.pageSlug)).catch(() => {});
+                cacheService.del(cacheKeys.creatorPage(page.pageSlug)).catch(() => {});
 
                 const members = await memberRepository.find({ creatorId: userId, status: 'active' }, 'memberId');
                 if (members.length > 0) {
@@ -259,6 +267,23 @@ export const postCrudService = {
                     }).catch(err => console.error('[PostCrudService] Failed to enqueue new_post notification', err));
                 }
             }
+        } else if (wasPublished && updatedPost && updatedPost.status !== 'published') {
+            // Post transitioning published -> draft/archived: decrement postCount & invalidate cache
+            const page = await creatorPageRepository.findById(updatedPost.pageId, '_id pageSlug');
+            if (page) {
+                await creatorPageRepository.updateOne(
+                    { _id: page._id, postCount: { $gt: 0 } },
+                    { $inc: { postCount: -1 } }
+                );
+                cacheService.invalidatePattern(cacheKeys.creatorFeedPattern(page.pageSlug)).catch(() => {});
+                cacheService.del(cacheKeys.creatorPage(page.pageSlug)).catch(() => {});
+            }
+        } else if (updatedPost) {
+            // Any other edit on an existing post: invalidate cached feed
+            const page = await creatorPageRepository.findById(updatedPost.pageId, '_id pageSlug');
+            if (page) {
+                cacheService.invalidatePattern(cacheKeys.creatorFeedPattern(page.pageSlug)).catch(() => {});
+            }
         }
 
         return updatedPost;
@@ -269,7 +294,16 @@ export const postCrudService = {
         if (!post) throw createError.notFound('Post');
 
         if (post.status === 'published') {
-            await creatorPageRepository.updateOne({ _id: post.pageId }, { $inc: { postCount: -1 } });
+            await creatorPageRepository.updateOne(
+                { _id: post.pageId, postCount: { $gt: 0 } },
+                { $inc: { postCount: -1 } }
+            );
+        }
+
+        const page = await creatorPageRepository.findById(post.pageId, '_id pageSlug');
+        if (page) {
+            cacheService.invalidatePattern(cacheKeys.creatorFeedPattern(page.pageSlug)).catch(() => {});
+            cacheService.del(cacheKeys.creatorPage(page.pageSlug)).catch(() => {});
         }
 
         Promise.all([

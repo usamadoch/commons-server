@@ -1,0 +1,334 @@
+{
+  "targetUrl": "https://api.commons.pk",
+  "timestamp": "2026-10-18T12:00:05.549Z",
+  "configuration": {
+    "vusPerWave": 20,
+    "totalWaves": 10,
+    "pauseSeconds": 30,
+    "ratePerMinute": "40"
+  },
+  "waveSummaries": [
+    {
+      "wave": 1,
+      "durationMs": 1332.2007,
+      "stats": {
+        "min": 329.39,
+        "max": 1256.43,
+        "avg": 631.65,
+        "p50": 632.05,
+        "p90": 901.74,
+        "p95": 901.74,
+        "p99": 1256.43
+      },
+      "successCount": 20,
+      "errorCount": 0,
+      "rateLimitedCount": 0
+    },
+    {
+      "wave": 2,
+      "durationMs": 1990.0383000000002,
+      "stats": {
+        "min": 182.41,
+        "max": 1971.55,
+        "avg": 885.53,
+        "p50": 911.07,
+        "p90": 1642.85,
+        "p95": 1642.85,
+        "p99": 1971.55
+      },
+      "successCount": 20,
+      "errorCount": 0,
+      "rateLimitedCount": 0
+    },
+    {
+      "wave": 3,
+      "durationMs": 1073.6631999999954,
+      "stats": {
+        "min": 239.97,
+        "max": 1054.86,
+        "avg": 481.24,
+        "p50": 476.98,
+        "p90": 964.67,
+        "p95": 964.67,
+        "p99": 1054.86
+      },
+      "successCount": 20,
+      "errorCount": 0,
+      "rateLimitedCount": 0
+    },
+    {
+      "wave": 4,
+      "durationMs": 940.4628999999986,
+      "stats": {
+        "min": 231.54,
+        "max": 881.28,
+        "avg": 419.25,
+        "p50": 390.61,
+        "p90": 653.33,
+        "p95": 653.33,
+        "p99": 881.28
+      },
+      "successCount": 20,
+      "errorCount": 0,
+      "rateLimitedCount": 0
+    },
+    {
+      "wave": 5,
+      "durationMs": 1316.1837999999989,
+      "stats": {
+        "min": 163.38,
+        "max": 1290.33,
+        "avg": 781.35,
+        "p50": 1020.43,
+        "p90": 1177.95,
+        "p95": 1177.95,
+        "p99": 1290.33
+      },
+      "successCount": 20,
+      "errorCount": 0,
+      "rateLimitedCount": 0
+    },
+    {
+      "wave": 6,
+      "durationMs": 603.3887000000104,
+      "stats": {
+        "min": 178.24,
+        "max": 599.84,
+        "avg": 352.53,
+        "p50": 390.4,
+        "p90": 572.07,
+        "p95": 572.07,
+        "p99": 599.84
+      },
+      "successCount": 20,
+      "errorCount": 0,
+      "rateLimitedCount": 0
+    },
+    {
+      "wave": 7,
+      "durationMs": 752.7926000000152,
+      "stats": {
+        "min": 211.07,
+        "max": 689.78,
+        "avg": 416.29,
+        "p50": 381.19,
+        "p90": 629.66,
+        "p95": 629.66,
+        "p99": 689.78
+      },
+      "successCount": 20,
+      "errorCount": 0,
+      "rateLimitedCount": 0
+    },
+    {
+      "wave": 8,
+      "durationMs": 720.6900000000023,
+      "stats": {
+        "min": 204.2,
+        "max": 700.51,
+        "avg": 402.04,
+        "p50": 423.14,
+        "p90": 684.75,
+        "p95": 684.75,
+        "p99": 700.51
+      },
+      "successCount": 20,
+      "errorCount": 0,
+      "rateLimitedCount": 0
+    },
+    {
+      "wave": 9,
+      "durationMs": 1611.9968999999983,
+      "stats": {
+        "min": 195.28,
+        "max": 1604.24,
+        "avg": 677.08,
+        "p50": 607.09,
+        "p90": 1580.8,
+        "p95": 1580.8,
+        "p99": 1604.24
+      },
+      "successCount": 20,
+      "errorCount": 0,
+      "rateLimitedCount": 0
+    },
+    {
+      "wave": 10,
+      "durationMs": 1680.125400000019,
+      "stats": {
+        "min": 273.28,
+        "max": 1670.39,
+        "avg": 865.61,
+        "p50": 1101.47,
+        "p90": 1617.74,
+        "p95": 1617.74,
+        "p99": 1670.39
+      },
+      "successCount": 20,
+      "errorCount": 0,
+      "rateLimitedCount": 0
+    }
+  ],
+  "overallStats": {
+    "min": 163.38,
+    "max": 1971.55,
+    "avg": 591.26,
+    "p50": 480.16,
+    "p90": 1177.95,
+    "p95": 1260.8,
+    "p99": 1642.85
+  },
+  "wave1Stats": {
+    "min": 329.39,
+    "max": 1256.43,
+    "avg": 631.65,
+    "p50": 632.05,
+    "p90": 901.74,
+    "p95": 901.74,
+    "p99": 1256.43
+  },
+  "warmStats": {
+    "min": 163.38,
+    "max": 1971.55,
+    "avg": 586.77,
+    "p50": 466.88,
+    "p90": 1178.6,
+    "p95": 1290.33,
+    "p99": 1670.39
+  },
+  "endpoints": [
+    {
+      "name": "GET /health",
+      "category": "Simple Public Read",
+      "total": 30,
+      "ok": 30,
+      "fail": 0,
+      "stats": {
+        "min": 163.38,
+        "max": 1188.64,
+        "avg": 346.62,
+        "p50": 274.59,
+        "p90": 572.07,
+        "p95": 705.53,
+        "p99": 1188.64
+      },
+      "codes": {
+        "200": 30
+      }
+    },
+    {
+      "name": "GET /ready",
+      "category": "Simple Public Read",
+      "total": 30,
+      "ok": 30,
+      "fail": 0,
+      "stats": {
+        "min": 178.24,
+        "max": 1971.55,
+        "avg": 353.26,
+        "p50": 253.04,
+        "p90": 672.01,
+        "p95": 784.98,
+        "p99": 1971.55
+      },
+      "codes": {
+        "200": 30
+      }
+    },
+    {
+      "name": "GET /pages",
+      "category": "Simple Public Read",
+      "total": 30,
+      "ok": 30,
+      "fail": 0,
+      "stats": {
+        "min": 251.67,
+        "max": 1508.9,
+        "avg": 560.59,
+        "p50": 396.06,
+        "p90": 1101.47,
+        "p95": 1168.98,
+        "p99": 1508.9
+      },
+      "codes": {
+        "200": 30
+      }
+    },
+    {
+      "name": "GET /pages/commons",
+      "category": "Complex DB Read",
+      "total": 30,
+      "ok": 30,
+      "fail": 0,
+      "stats": {
+        "min": 394.16,
+        "max": 1670.39,
+        "avg": 789.44,
+        "p50": 629.66,
+        "p90": 1290.33,
+        "p95": 1642.85,
+        "p99": 1670.39
+      },
+      "codes": {
+        "200": 30
+      }
+    },
+    {
+      "name": "GET /posts/creator?pageSlug=commons",
+      "category": "Complex DB Read",
+      "total": 30,
+      "ok": 30,
+      "fail": 0,
+      "stats": {
+        "min": 321.73,
+        "max": 1604.24,
+        "avg": 751.73,
+        "p50": 632.05,
+        "p90": 1200.34,
+        "p95": 1314.46,
+        "p99": 1604.24
+      },
+      "codes": {
+        "200": 30
+      }
+    },
+    {
+      "name": "GET /posts/6ab670e11d78868df779cf94",
+      "category": "Complex DB Read",
+      "total": 30,
+      "ok": 30,
+      "fail": 0,
+      "stats": {
+        "min": 319.93,
+        "max": 1617.74,
+        "avg": 792.43,
+        "p50": 653.33,
+        "p90": 1580.8,
+        "p95": 1589.32,
+        "p99": 1617.74
+      },
+      "codes": {
+        "200": 30
+      }
+    },
+    {
+      "name": "GET /tiers/creator/6a4ab792301861fbab5f22c8",
+      "category": "Complex DB Read",
+      "total": 20,
+      "ok": 20,
+      "fail": 0,
+      "stats": {
+        "min": 257.16,
+        "max": 1177.95,
+        "avg": 521.47,
+        "p50": 397.6,
+        "p90": 1084.09,
+        "p95": 1084.09,
+        "p99": 1177.95
+      },
+      "codes": {
+        "200": 20
+      }
+    }
+  ]
+}

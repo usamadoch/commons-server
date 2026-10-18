@@ -6,6 +6,7 @@ import { postLikeRepository } from '../repositories/postLikeRepository.js';
 import PollVote from '../models/PollVote.js';
 import { createError } from '../middleware/errorHandler.js';
 import { sanitizePostsForClient } from '../utils/postSanitizer.js';
+import { cacheService, cacheKeys } from '../config/redis.js';
 
 export const postQueryService = {
     async getMyPosts(userId: string | Types.ObjectId, page: number, limit: number) {
@@ -55,7 +56,19 @@ export const postQueryService = {
     },
 
     async getCreatorPosts(pageSlug: string, limit: number, type?: string, userId?: string | Types.ObjectId) {
-        const creatorPage = await creatorPageRepository.findOne({ pageSlug: pageSlug.toLowerCase() }, '_id');
+        const normalizedSlug = pageSlug.toLowerCase();
+        const isPublicFeed = !userId;
+        const cacheKey = cacheKeys.creatorFeed(normalizedSlug, type || 'all', limit);
+
+        // Check Redis cache only for unauthenticated public requests (never cache personalized data)
+        if (isPublicFeed) {
+            const cachedFeed = await cacheService.get<any[]>(cacheKey);
+            if (cachedFeed) {
+                return cachedFeed;
+            }
+        }
+
+        const creatorPage = await creatorPageRepository.findOne({ pageSlug: normalizedSlug }, '_id');
         if (!creatorPage) throw createError.notFound('Creator page');
 
         const query: Record<string, unknown> = {
@@ -68,7 +81,8 @@ export const postQueryService = {
             query.postType = types.length === 1 ? types[0] : { $in: types };
         }
 
-        const posts = await postRepository.findNotLean(
+        // Use .lean() query (find instead of findNotLean) to avoid Mongoose document hydration
+        const posts = await postRepository.find(
             query,
             '_id caption postType visibility viewCount likeCount commentCount creatorId createdAt isPinned linkUrl poll mediaAttachments.type mediaAttachments.url mediaAttachments.thumbnailUrl mediaAttachments.duration mediaAttachments.cloudinaryPublicId mediaAttachments.muxPlaybackId mediaAttachments.filename mediaAttachments.fileSize mediaAttachments.mimeType mediaAttachments.dimensions mediaAttachments.status',
             { isPinned: -1, createdAt: -1 },
@@ -111,18 +125,25 @@ export const postQueryService = {
 
         const sanitizedPosts = sanitizePostsForClient(posts, userId?.toString() || null, membershipMap);
 
-        return sanitizedPosts.map(post => ({
+        const result = sanitizedPosts.map(post => ({
             ...post,
             isLiked: likedPostIds.has(post._id.toString()),
             ...(votedPollsMap.has(post._id.toString()) ? { userVotedOptions: votedPollsMap.get(post._id.toString()) } : {})
         }));
+
+        // Cache public sanitized feed for 120 seconds (2 minutes)
+        if (isPublicFeed) {
+            await cacheService.set(cacheKey, result, 120);
+        }
+
+        return result;
     },
 
     async getRecentVideos(pageSlug: string, limit: number) {
         const creatorPage = await creatorPageRepository.findOne({ pageSlug: pageSlug.toLowerCase() }, '_id');
         if (!creatorPage) throw createError.notFound('Creator page');
 
-        return postRepository.findNotLean(
+        return postRepository.find(
             { pageId: creatorPage._id, postType: 'video', status: 'published' },
             'caption teaser mediaAttachments.thumbnailUrl mediaAttachments.duration mediaAttachments.type publishedAt createdAt _id',
             { publishedAt: -1, createdAt: -1 },

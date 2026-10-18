@@ -17,6 +17,7 @@ jest.unstable_mockModule('../../models/Notification', () => ({
         create: jest.fn(),
         findOne: jest.fn(),
         insertMany: jest.fn(),
+        findOneAndUpdate: jest.fn(),
     }
 }));
 
@@ -44,6 +45,7 @@ type MockNotificationModel = {
     create: jest.Mock<(...args: any[]) => Promise<INotificationDocument>>;
     findOne: jest.Mock<(...args: any[]) => Promise<INotificationDocument | null>>;
     insertMany: jest.Mock<(...args: any[]) => Promise<INotificationDocument[]>>;
+    findOneAndUpdate: jest.Mock<(...args: any[]) => Promise<INotificationDocument | null>>;
 };
 
 type MockLogger = {
@@ -130,12 +132,12 @@ describe('NotificationService', () => {
                 _id: 'notifABC',
                 type: 'new_message',
                 isRead: false,
-                metadata: { conversationId: 'conv456', messageCount: 1 },
+                metadata: { conversationId: 'conv456', count: 2 },
                 body: '1 new messages',
                 save: jest.fn()
             } as unknown as INotificationDocument;
 
-            Notification.findOne.mockResolvedValue(mockExistingNotification);
+            Notification.findOneAndUpdate.mockResolvedValue(mockExistingNotification);
 
             await NotificationService.sendNotification(
                 mockRecipientId,
@@ -145,27 +147,33 @@ describe('NotificationService', () => {
                 mockOptions
             );
 
+            expect(Notification.findOneAndUpdate).toHaveBeenCalledWith(
+                { dedupeKey: `new_message:${mockRecipientId}:conv456` },
+                expect.any(Object),
+                { new: true, upsert: true }
+            );
             expect(mockExistingNotification.body).toBe('2 new messages');
-            expect(mockExistingNotification.metadata).toEqual({
-                conversationId: 'conv456',
-                messageCount: 2
-            });
             expect(mockExistingNotification.save).toHaveBeenCalled();
             expect(mockOptions.io.to).toHaveBeenCalledWith(`user:${mockRecipientId}`);
             expect(mockOptions.io.emit).toHaveBeenCalledWith('notification', mockExistingNotification);
         });
 
-        it('should create new notification if none exists', async () => {
+        it('should create new aggregated notification via upsert if none exists', async () => {
             const mockUser = { notificationPreferences: undefined } as unknown as IUserDocument; // Should default to enabled
 
             User.findById.mockReturnValue({
                 select: jest.fn<() => Promise<IUserDocument | null>>().mockResolvedValue(mockUser)
             } as unknown as MockQuery<IUserDocument | null>);
 
-            Notification.findOne.mockResolvedValue(null);
-
-            const mockNewNotification = { _id: 'newNotifXYZ', ...mockOptions } as unknown as INotificationDocument;
-            Notification.create.mockResolvedValue(mockNewNotification);
+            const mockNewNotification = {
+                _id: 'newNotifXYZ',
+                type: 'new_message',
+                title: mockTitle,
+                body: '1 new messages',
+                metadata: { conversationId: 'conv456', count: 1 },
+                save: jest.fn()
+            } as unknown as INotificationDocument;
+            Notification.findOneAndUpdate.mockResolvedValue(mockNewNotification);
 
             await NotificationService.sendNotification(
                 mockRecipientId,
@@ -175,14 +183,40 @@ describe('NotificationService', () => {
                 mockOptions
             );
 
-            expect(Notification.create).toHaveBeenCalledWith(expect.objectContaining({
-                recipientId: mockRecipientId,
-                type: mockType,
-                title: mockTitle,
-                metadata: { ...mockOptions.metadata, messageCount: 1 }
-            }));
+            expect(Notification.findOneAndUpdate).toHaveBeenCalledWith(
+                { dedupeKey: `new_message:${mockRecipientId}:conv456` },
+                expect.any(Object),
+                { new: true, upsert: true }
+            );
             expect(mockOptions.io.to).toHaveBeenCalledWith(`user:${mockRecipientId}`);
             expect(mockOptions.io.emit).toHaveBeenCalledWith('notification', mockNewNotification);
+        });
+
+        it('should create non-aggregated notification using Notification.create', async () => {
+            const mockUser = { notificationPreferences: undefined } as unknown as IUserDocument;
+
+            User.findById.mockReturnValue({
+                select: jest.fn<() => Promise<IUserDocument | null>>().mockResolvedValue(mockUser)
+            } as unknown as MockQuery<IUserDocument | null>);
+
+            const nonAggNotification = { _id: 'liveNotif', ...mockOptions } as unknown as INotificationDocument;
+            Notification.create.mockResolvedValue(nonAggNotification);
+
+            await NotificationService.sendNotification(
+                mockRecipientId,
+                'creator_went_live',
+                'Creator Live!',
+                'Creator is now streaming',
+                mockOptions
+            );
+
+            expect(Notification.create).toHaveBeenCalledWith(expect.objectContaining({
+                recipientId: mockRecipientId,
+                type: 'creator_went_live',
+                title: 'Creator Live!',
+            }));
+            expect(mockOptions.io.to).toHaveBeenCalledWith(`user:${mockRecipientId}`);
+            expect(mockOptions.io.emit).toHaveBeenCalledWith('notification', nonAggNotification);
         });
 
         it('should log warning if user not found', async () => {

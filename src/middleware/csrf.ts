@@ -14,9 +14,9 @@ export const {
   cookieName: "x-csrf-token", // Name of the cookie containing the encrypted token/secret
   cookieOptions: {
     httpOnly: true,
-    sameSite: config.env === "production" ? "none" : "lax", // sameSite: "none" required for cross-origin
+    sameSite: (config.env === "production" || config.env === "staging" || process.env.APP_ENV === "staging") ? "none" : "lax", // sameSite: "none" required for cross-origin
     path: "/",
-    secure: config.env === "production",
+    secure: config.env === "production" || config.env === "staging" || process.env.APP_ENV === "staging",
   },
   size: 64, // The size of the generated tokens in bits
   ignoredMethods: ["GET", "HEAD", "OPTIONS"], // Methods to ignore (safe methods)

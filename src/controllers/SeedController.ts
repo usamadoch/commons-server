@@ -11,8 +11,25 @@ import Conversation from '../models/Conversation.js';
 import Message from '../models/Message.js';
 import Notification from '../models/Notification.js';
 import logger from '../config/logger.js';
+import config from '../config/index.js';
 
 export const seedDatabase = async (req: Request, res: Response) => {
+    // Production safety guard: Prevent seeding on production or if database is commons_prod
+    const isProduction = process.env.NODE_ENV === 'production' && process.env.APP_ENV !== 'staging';
+    const currentDb = mongoose.connection.name || '';
+    const isProdDb = currentDb.includes('prod') || config.mongodb.uri.includes('commons_prod');
+
+    if (isProduction || isProdDb) {
+        logger.warn('Blocked attempt to seed production database', { currentDb, env: config.env });
+        return res.status(403).json({
+            success: false,
+            error: {
+                code: 'FORBIDDEN',
+                message: `Database seeding is strictly prohibited on production database (${currentDb || 'production'}).`
+            }
+        });
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
 

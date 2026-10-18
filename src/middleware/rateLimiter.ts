@@ -59,12 +59,33 @@ const rateLimitConfigs: Record<string, RateLimitConfig> = {
 const createRateLimiter = (configKey: string): RateLimitRequestHandler => {
     const conf = rateLimitConfigs[configKey] || rateLimitConfigs.api;
 
-    // In development/test, use lenient settings
-    const isDev = process.env.NODE_ENV !== 'production';
+    const isStaging = process.env.APP_ENV === 'staging' || process.env.RATE_LIMIT_PROFILE === 'staging';
+    const isProdDb = config.mongodb.uri.includes('commons_prod');
+    // Safety guard: Staging rate-limit relaxation is strictly forbidden when connected to commons_prod
+    const safeStaging = isStaging && !isProdDb;
+
+    // Distinguish development vs deployed (production or staging)
+    const isDev = process.env.NODE_ENV !== 'production' && !isStaging;
+
+    let windowMs = conf.windowMs;
+    let max = conf.max;
+
+    if (isDev) {
+        windowMs = 1000;
+        max = 1000;  // High limits in local dev
+    } else if (safeStaging) {
+        // In safe staging, permit 20-VU concurrent performance testing for general endpoints
+        // while preserving protection for auth, signup, and sensitive actions
+        if (configKey === 'api') {
+            max = parseInt(process.env.STAGING_RATE_LIMIT_API_MAX || '3000', 10);
+        } else if (configKey === 'postView') {
+            max = parseInt(process.env.STAGING_RATE_LIMIT_POST_VIEW_MAX || '600', 10);
+        }
+    }
 
     const limiterOptions: Parameters<typeof rateLimit>[0] = {
-        windowMs: isDev ? 1000 : conf.windowMs,
-        max: isDev ? 1000 : conf.max,  // Very high limits in dev
+        windowMs,
+        max,
         standardHeaders: true,
         legacyHeaders: false,
         message: {
@@ -88,17 +109,20 @@ const createRateLimiter = (configKey: string): RateLimitRequestHandler => {
         skip: (req) => req.method === 'OPTIONS',
     };
 
-    // Use Redis store if Redis is available (only in production)
+    // Use Redis store if Redis is available (in production or staging)
     if (!isDev && config.redis.ioRedisUrl && ioRedis) {
         const redisClient = ioRedis; // Capture for closure
+        const prefix = process.env.REDIS_KEY_PREFIX || (isStaging ? 'staging:' : '');
         try {
             limiterOptions.store = new RedisStore({
                 sendCommand: async (...args: string[]): Promise<number | string> => {
                     const result = await redisClient.call(args[0], ...args.slice(1));
                     return result as number | string;
                 },
-                prefix: `ratelimit:${configKey}:`,
+                prefix: `${prefix}ratelimit:${configKey}:`,
             });
+            // Crucial: allow requests to proceed if Redis store fails or hits quota limits
+            limiterOptions.passOnStoreError = true;
         } catch (error) {
             console.warn('Failed to create Redis store for rate limiter, using memory store:', error);
         }

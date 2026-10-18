@@ -17,10 +17,11 @@ export const visitorIdMiddleware = (req: Request, res: Response, next: NextFunct
 
     if (!vid || typeof vid !== 'string' || !UUID_REGEX.test(vid)) {
         vid = crypto.randomUUID();
+        const isCrossSite = config.env === 'production' || config.env === 'staging' || process.env.APP_ENV === 'staging';
         res.cookie('visitorId', vid, {
             httpOnly: true,
-            secure: config.env === 'production',
-            sameSite: 'lax',
+            secure: isCrossSite,
+            sameSite: isCrossSite ? 'none' : 'lax',
             maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
             signed: true,
         });

@@ -3,7 +3,7 @@ import { Server } from 'socket.io';
 import config from '../../config/index.js';
 import { logger } from '../../config/logger.js';
 import { ioRedis } from '../../config/redis.js';
-import { QUEUE_NAMES, NotificationJobData, addEmailJob } from '../queues.js';
+import { QUEUE_NAMES, QUEUE_PREFIX, NotificationJobData, addEmailJob } from '../queues.js';
 import { NotificationService } from '../../services/notificationService.js';
 import { userRepository } from '../../repositories/userRepository.js';
 
@@ -117,6 +117,7 @@ export const startNotificationWorker = (io?: Server): void => {
         processNotification,
         {
             connection: ioRedis as any,
+            prefix: QUEUE_PREFIX,
             concurrency: 5,
         }
     );

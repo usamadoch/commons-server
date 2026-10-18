@@ -7,7 +7,7 @@ export const creatorPageRepository = {
         if (select) q = q.select(select);
         if (sort) q = q.sort(sort);
         if (limit !== undefined) q = q.limit(limit);
-        return q;
+        return q.lean();
     },
 
     findOne: (query: Record<string, unknown>, select?: string) => {
@@ -17,7 +17,7 @@ export const creatorPageRepository = {
     },
 
     findOnePopulated: (query: Record<string, unknown>, populateField: string, populateSelect: string) => {
-        return CreatorPage.findOne(query).populate(populateField, populateSelect);
+        return CreatorPage.findOne(query).populate(populateField, populateSelect).lean();
     },
 
     findById: (id: string | Types.ObjectId, select?: string) => {

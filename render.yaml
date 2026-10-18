@@ -1,0 +1,72 @@
+services:
+  - type: web
+    name: commons-api-staging
+    runtime: node
+    plan: starter # Starter plan recommended for sustained load testing without sleep/cold-starts
+    region: oregon
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: false # Manual deploy or staging branch push only
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_ENV
+        value: staging
+      - key: RATE_LIMIT_PROFILE
+        value: staging
+      - key: PORT
+        value: 5000
+      - key: CLIENT_URL
+        sync: false # Set in dashboard: https://staging.commons.pk,https://commons-staging.vercel.app
+      - key: MONGODB_URI
+        sync: false # Set in dashboard: mongodb+srv://<user>:<password>@<cluster>.mongodb.net/commons_staging?retryWrites=true&w=majority
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: COOKIE_SECRET
+        generateValue: true
+      - key: UPSTASH_REDIS_URL
+        sync: false # Set in dashboard: rediss://default:<token>@<staging-redis>.upstash.io:6379
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false # Set in dashboard: https://<staging-redis>.upstash.io
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: REDIS_KEY_PREFIX
+        value: "staging:"
+      - key: REDIS_QUEUE_PREFIX
+        value: "staging"
+      - key: FEATURE_REDIS_CACHE
+        value: "true"
+      - key: FEATURE_BACKGROUND_JOBS
+        value: "true"
+      - key: FEATURE_AUDIT_LOGS
+        value: "true"
+      - key: EMAIL_ENABLED
+        value: "false"
+      - key: SAFEPAY_ENV
+        value: "sandbox"
+      - key: SAFEPAY_API_KEY
+        sync: false # Sandbox test key
+      - key: SAFEPAY_SECRET_KEY
+        sync: false # Sandbox test secret
+      - key: SAFEPAY_WEBHOOK_SECRET
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: MUX_TOKEN_ID
+        sync: false
+      - key: MUX_TOKEN_SECRET
+        sync: false
+      - key: MUX_WEBHOOK_SECRET
+        sync: false
+      - key: STAGING_RATE_LIMIT_API_MAX
+        value: "3000"
+      - key: STAGING_RATE_LIMIT_POST_VIEW_MAX
+        value: "600"

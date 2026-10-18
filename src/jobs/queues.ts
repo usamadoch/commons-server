@@ -50,6 +50,9 @@ let emailQueue: Queue<EmailJobData> | null = null;
 
 import { ioRedis } from '../config/redis.js';
 
+// BullMQ queue prefix for staging/multi-environment isolation
+export const QUEUE_PREFIX = process.env.REDIS_QUEUE_PREFIX || (process.env.APP_ENV === 'staging' ? 'staging' : undefined);
+
 // Initialize queues
 export const initializeQueues = (): void => {
     if (!config.features.useBackgroundJobs) {
@@ -64,6 +67,7 @@ export const initializeQueues = (): void => {
 
     notificationQueue = new Queue<NotificationJobData>(QUEUE_NAMES.NOTIFICATIONS, {
         connection: ioRedis as any,
+        prefix: QUEUE_PREFIX,
         defaultJobOptions: {
             removeOnComplete: 100,
             removeOnFail: 50,
@@ -77,6 +81,7 @@ export const initializeQueues = (): void => {
 
     analyticsQueue = new Queue<AnalyticsJobData>(QUEUE_NAMES.ANALYTICS, {
         connection: ioRedis as any,
+        prefix: QUEUE_PREFIX,
         defaultJobOptions: {
             removeOnComplete: 50,
             removeOnFail: 10,
@@ -86,6 +91,7 @@ export const initializeQueues = (): void => {
 
     mediaCleanupQueue = new Queue<MediaCleanupJobData>(QUEUE_NAMES.MEDIA_CLEANUP, {
         connection: ioRedis as any,
+        prefix: QUEUE_PREFIX,
         defaultJobOptions: {
             removeOnComplete: 100, // Keep last 100 successful jobs
             removeOnFail: 500,    // Keep last 500 failed jobs for debugging
@@ -99,6 +105,7 @@ export const initializeQueues = (): void => {
 
     emailQueue = new Queue<EmailJobData>(QUEUE_NAMES.EMAIL, {
         connection: ioRedis as any,
+        prefix: QUEUE_PREFIX,
         defaultJobOptions: {
             removeOnComplete: 100,
             removeOnFail: 50,
@@ -110,7 +117,7 @@ export const initializeQueues = (): void => {
         },
     });
 
-    logger.info('BullMQ queues initialized');
+    logger.info('BullMQ queues initialized', { prefix: QUEUE_PREFIX || 'default' });
 };
 
 // Get queue instances

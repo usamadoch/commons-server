@@ -148,6 +148,7 @@ postSchema.pre('save', function () {
 
 // Indexes
 postSchema.index({ creatorId: 1, status: 1 });
+postSchema.index({ pageId: 1, status: 1, isPinned: -1, createdAt: -1 });
 postSchema.index({ pageId: 1, status: 1, publishedAt: -1 });
 postSchema.index({ visibility: 1, status: 1, publishedAt: -1 });
 postSchema.index({ tags: 1 });

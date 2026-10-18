@@ -84,7 +84,7 @@ const config: Config = {
     redis: {
         url: process.env.UPSTASH_REDIS_REST_URL || '',
         token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
-        ioRedisUrl: process.env.UPSTASH_REDIS_URL || '',
+        ioRedisUrl: process.env.REDIS_URL || process.env.UPSTASH_REDIS_URL || '',
     },
     features: {
         useRedisCache: process.env.FEATURE_REDIS_CACHE === 'true',

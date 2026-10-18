@@ -107,8 +107,8 @@ function methodColor(method: string): string {
 }
 
 /** Shortens a UUID to the first 8 characters for readability */
-function shortId(id: string): string {
-    return id.substring(0, 8);
+function shortId(id?: string | null): string {
+    return id ? id.substring(0, 8) : '--------';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

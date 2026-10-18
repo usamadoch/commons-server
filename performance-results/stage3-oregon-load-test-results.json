@@ -1,0 +1,718 @@
+{
+  "metadata": {
+    "targetUrl": "https://api.commons.pk",
+    "region": "Oregon, USA (AWS us-west-2)",
+    "mongodbRegion": "Oregon, USA (AWS us-west-2, cluster0.0hhveup)",
+    "timestamp": "2026-10-18T14:16:09.694Z",
+    "totalDurationSec": 735.2,
+    "peakVUs": 20,
+    "holdMinutes": 10
+  },
+  "metrics": {
+    "totalRequests": 904,
+    "successRequests": 904,
+    "failedRequests": 0,
+    "rateLimited429": 0,
+    "timeouts": 0,
+    "avgRequestRate": 1.23,
+    "overallErrorPct": 0
+  },
+  "endpoints": [
+    {
+      "name": "GET /health",
+      "category": "Simple Public Read",
+      "totalRequests": 67,
+      "successCount": 67,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 67
+      },
+      "min": 123.96,
+      "avg": 337.05,
+      "p50": 140.12,
+      "p90": 593.79,
+      "p95": 743.41,
+      "p99": 3107.27,
+      "max": 3107.27,
+      "targetP95": 500,
+      "baselineP95": 346.6,
+      "degradationPct": 114.5,
+      "pass": false,
+      "errorSamples": []
+    },
+    {
+      "name": "GET /ready",
+      "category": "Simple Public Read",
+      "totalRequests": 0,
+      "successCount": 0,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {},
+      "min": 0,
+      "avg": 0,
+      "p50": 0,
+      "p90": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0,
+      "targetP95": 500,
+      "baselineP95": 353.3,
+      "degradationPct": -100,
+      "pass": true,
+      "errorSamples": []
+    },
+    {
+      "name": "GET /auth/csrf",
+      "category": "Simple Public Read",
+      "totalRequests": 64,
+      "successCount": 64,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 64
+      },
+      "min": 123.98,
+      "avg": 431.74,
+      "p50": 220.92,
+      "p90": 801.24,
+      "p95": 1903.92,
+      "p99": 2540.27,
+      "max": 2540.27,
+      "targetP95": 500,
+      "baselineP95": 350,
+      "degradationPct": 444,
+      "pass": false,
+      "errorSamples": []
+    },
+    {
+      "name": "GET /pages",
+      "category": "Simple Public Read",
+      "totalRequests": 97,
+      "successCount": 97,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 97
+      },
+      "min": 284.53,
+      "avg": 609.77,
+      "p50": 338.11,
+      "p90": 1140.6,
+      "p95": 2195.32,
+      "p99": 3512.44,
+      "max": 3512.44,
+      "targetP95": 500,
+      "baselineP95": 560.6,
+      "degradationPct": 291.6,
+      "pass": false,
+      "errorSamples": []
+    },
+    {
+      "name": "GET /pages/commons",
+      "category": "Complex DB Read",
+      "totalRequests": 128,
+      "successCount": 128,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 128
+      },
+      "min": 610.98,
+      "avg": 878.53,
+      "p50": 683.93,
+      "p90": 1354.2,
+      "p95": 1667.62,
+      "p99": 3718.22,
+      "max": 4654.69,
+      "targetP95": 800,
+      "baselineP95": 560.6,
+      "degradationPct": 197.5,
+      "pass": false,
+      "errorSamples": []
+    },
+    {
+      "name": "GET /posts/creator?pageSlug=commons",
+      "category": "Complex DB Read",
+      "totalRequests": 128,
+      "successCount": 128,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 128
+      },
+      "min": 448.09,
+      "avg": 713.47,
+      "p50": 481.65,
+      "p90": 1078.23,
+      "p95": 1705.87,
+      "p99": 3322.09,
+      "max": 4601.21,
+      "targetP95": 800,
+      "baselineP95": 595.4,
+      "degradationPct": 186.5,
+      "pass": false,
+      "errorSamples": []
+    },
+    {
+      "name": "GET /posts/6ab670e11d78868df779cf94",
+      "category": "Complex DB Read",
+      "totalRequests": 129,
+      "successCount": 129,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 129
+      },
+      "min": 449.82,
+      "avg": 825.1,
+      "p50": 526.86,
+      "p90": 1279.32,
+      "p95": 2532.83,
+      "p99": 3873.42,
+      "max": 6986.23,
+      "targetP95": 800,
+      "baselineP95": 580,
+      "degradationPct": 336.7,
+      "pass": false,
+      "errorSamples": []
+    },
+    {
+      "name": "GET /tiers/creator/6a4ab792301861fbab5f22c8",
+      "category": "Complex DB Read",
+      "totalRequests": 98,
+      "successCount": 98,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 98
+      },
+      "min": 283.85,
+      "avg": 450.96,
+      "p50": 316.88,
+      "p90": 839.32,
+      "p95": 1133.42,
+      "p99": 1469.19,
+      "max": 1469.19,
+      "targetP95": 800,
+      "baselineP95": 510.5,
+      "degradationPct": 122,
+      "pass": false,
+      "errorSamples": []
+    },
+    {
+      "name": "GET /auth/me",
+      "category": "Complex DB Read",
+      "totalRequests": 64,
+      "successCount": 64,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 64
+      },
+      "min": 447.55,
+      "avg": 717.86,
+      "p50": 556.04,
+      "p90": 1126.45,
+      "p95": 1347.29,
+      "p99": 4182.16,
+      "max": 4182.16,
+      "targetP95": 800,
+      "baselineP95": 480,
+      "degradationPct": 180.7,
+      "pass": false,
+      "errorSamples": []
+    },
+    {
+      "name": "GET /notifications",
+      "category": "Complex DB Read",
+      "totalRequests": 64,
+      "successCount": 64,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 64
+      },
+      "min": 447.28,
+      "avg": 705.97,
+      "p50": 481.96,
+      "p90": 904.95,
+      "p95": 1999.65,
+      "p99": 5714.54,
+      "max": 5714.54,
+      "targetP95": 800,
+      "baselineP95": 520,
+      "degradationPct": 284.5,
+      "pass": false,
+      "errorSamples": []
+    },
+    {
+      "name": "GET /notifications/unread-count",
+      "category": "Complex DB Read",
+      "totalRequests": 65,
+      "successCount": 65,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 65
+      },
+      "min": 450.26,
+      "avg": 648.33,
+      "p50": 466.92,
+      "p90": 936.18,
+      "p95": 1847.71,
+      "p99": 2839.86,
+      "max": 2839.86,
+      "targetP95": 800,
+      "baselineP95": 520,
+      "degradationPct": 255.3,
+      "pass": false,
+      "errorSamples": []
+    }
+  ],
+  "timeSeries": [
+    {
+      "timestamp": 1792332250300,
+      "timeFormatted": "7:04:10 pm",
+      "activeVUs": 5,
+      "reqRate": 0.07,
+      "avgLatency": 469,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332264708,
+      "timeFormatted": "7:04:24 pm",
+      "activeVUs": 5,
+      "reqRate": 0.53,
+      "avgLatency": 923.6,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332279918,
+      "timeFormatted": "7:04:39 pm",
+      "activeVUs": 10,
+      "reqRate": 0.53,
+      "avgLatency": 636.4,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332294772,
+      "timeFormatted": "7:04:54 pm",
+      "activeVUs": 20,
+      "reqRate": 0.8,
+      "avgLatency": 455.4,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332309853,
+      "timeFormatted": "7:05:09 pm",
+      "activeVUs": 20,
+      "reqRate": 1.53,
+      "avgLatency": 719.7,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332324854,
+      "timeFormatted": "7:05:24 pm",
+      "activeVUs": 20,
+      "reqRate": 1.47,
+      "avgLatency": 516.9,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332339733,
+      "timeFormatted": "7:05:39 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 557.5,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332354842,
+      "timeFormatted": "7:05:54 pm",
+      "activeVUs": 20,
+      "reqRate": 1.2,
+      "avgLatency": 894.3,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332370622,
+      "timeFormatted": "7:06:10 pm",
+      "activeVUs": 20,
+      "reqRate": 1.4,
+      "avgLatency": 610.6,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332384876,
+      "timeFormatted": "7:06:24 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 574,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332401920,
+      "timeFormatted": "7:06:41 pm",
+      "activeVUs": 20,
+      "reqRate": 1.27,
+      "avgLatency": 615.3,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332414861,
+      "timeFormatted": "7:06:54 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 1154.3,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332430033,
+      "timeFormatted": "7:07:10 pm",
+      "activeVUs": 20,
+      "reqRate": 1.4,
+      "avgLatency": 713.4,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332444782,
+      "timeFormatted": "7:07:24 pm",
+      "activeVUs": 20,
+      "reqRate": 1.4,
+      "avgLatency": 523.1,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332467657,
+      "timeFormatted": "7:07:47 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 496,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332474946,
+      "timeFormatted": "7:07:54 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 2229.2,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332489801,
+      "timeFormatted": "7:08:09 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 494.8,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332504827,
+      "timeFormatted": "7:08:24 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 437.7,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332519875,
+      "timeFormatted": "7:08:39 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 574.5,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332534920,
+      "timeFormatted": "7:08:54 pm",
+      "activeVUs": 20,
+      "reqRate": 1.47,
+      "avgLatency": 450.8,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332549843,
+      "timeFormatted": "7:09:09 pm",
+      "activeVUs": 20,
+      "reqRate": 1.47,
+      "avgLatency": 714.5,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332564843,
+      "timeFormatted": "7:09:24 pm",
+      "activeVUs": 20,
+      "reqRate": 1.4,
+      "avgLatency": 447.7,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332579870,
+      "timeFormatted": "7:09:39 pm",
+      "activeVUs": 20,
+      "reqRate": 1.47,
+      "avgLatency": 521.4,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332595472,
+      "timeFormatted": "7:09:55 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 555.5,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332609876,
+      "timeFormatted": "7:10:09 pm",
+      "activeVUs": 20,
+      "reqRate": 1.2,
+      "avgLatency": 861.6,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332624893,
+      "timeFormatted": "7:10:24 pm",
+      "activeVUs": 20,
+      "reqRate": 1.4,
+      "avgLatency": 487.9,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332640158,
+      "timeFormatted": "7:10:40 pm",
+      "activeVUs": 20,
+      "reqRate": 1.4,
+      "avgLatency": 941.5,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332655273,
+      "timeFormatted": "7:10:55 pm",
+      "activeVUs": 20,
+      "reqRate": 1.4,
+      "avgLatency": 556.5,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332670077,
+      "timeFormatted": "7:11:10 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 497,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332685056,
+      "timeFormatted": "7:11:25 pm",
+      "activeVUs": 20,
+      "reqRate": 1.47,
+      "avgLatency": 509.7,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332700033,
+      "timeFormatted": "7:11:40 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 574.9,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332715001,
+      "timeFormatted": "7:11:55 pm",
+      "activeVUs": 20,
+      "reqRate": 1.27,
+      "avgLatency": 538,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332731703,
+      "timeFormatted": "7:12:11 pm",
+      "activeVUs": 20,
+      "reqRate": 1.4,
+      "avgLatency": 514.5,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332745143,
+      "timeFormatted": "7:12:25 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 1106.1,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332759985,
+      "timeFormatted": "7:12:39 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 522,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332775029,
+      "timeFormatted": "7:12:55 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 480.8,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332789991,
+      "timeFormatted": "7:13:09 pm",
+      "activeVUs": 20,
+      "reqRate": 1.53,
+      "avgLatency": 461.7,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332805353,
+      "timeFormatted": "7:13:25 pm",
+      "activeVUs": 20,
+      "reqRate": 1.27,
+      "avgLatency": 1129,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332820011,
+      "timeFormatted": "7:13:40 pm",
+      "activeVUs": 20,
+      "reqRate": 1.4,
+      "avgLatency": 573.2,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332835032,
+      "timeFormatted": "7:13:55 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 1228.6,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332850044,
+      "timeFormatted": "7:14:10 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 732.8,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332865206,
+      "timeFormatted": "7:14:25 pm",
+      "activeVUs": 20,
+      "reqRate": 1.27,
+      "avgLatency": 529.7,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332880060,
+      "timeFormatted": "7:14:40 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 473.8,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332895518,
+      "timeFormatted": "7:14:55 pm",
+      "activeVUs": 20,
+      "reqRate": 1.4,
+      "avgLatency": 425.7,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332910086,
+      "timeFormatted": "7:15:10 pm",
+      "activeVUs": 20,
+      "reqRate": 1.47,
+      "avgLatency": 485.1,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332925087,
+      "timeFormatted": "7:15:25 pm",
+      "activeVUs": 20,
+      "reqRate": 1.33,
+      "avgLatency": 521,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332940092,
+      "timeFormatted": "7:15:40 pm",
+      "activeVUs": 10,
+      "reqRate": 0.67,
+      "avgLatency": 567.1,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    },
+    {
+      "timestamp": 1792332956740,
+      "timeFormatted": "7:15:56 pm",
+      "activeVUs": 5,
+      "reqRate": 0.27,
+      "avgLatency": 708.9,
+      "mongoStatus": "connected",
+      "redisStatus": "connected"
+    }
+  ]
+}

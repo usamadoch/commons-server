@@ -2,7 +2,7 @@ import { Worker, Job } from 'bullmq';
 import config from '../../config/index.js';
 import { logger } from '../../config/logger.js';
 import { ioRedis } from '../../config/redis.js';
-import { QUEUE_NAMES, MediaCleanupJobData } from '../queues.js';
+import { QUEUE_NAMES, QUEUE_PREFIX, MediaCleanupJobData } from '../queues.js';
 import { cloudinaryService } from '../../services/media/cloudinaryService.js';
 import { muxService } from '../../services/media/muxService.js';
 let worker: Worker<MediaCleanupJobData> | null = null;
@@ -38,6 +38,7 @@ export const startMediaCleanupWorker = (): void => {
         processMediaCleanup,
         {
             connection: ioRedis as any,
+            prefix: QUEUE_PREFIX,
             concurrency: 5,
         }
     );

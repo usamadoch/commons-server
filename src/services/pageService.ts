@@ -5,6 +5,7 @@ import { createError } from '../middleware/errorHandler.js';
 import { UpdatePageInput } from '../utils/validators.js';
 import { Types } from 'mongoose';
 import { mediaLifecycleService } from './media/mediaLifecycleService.js';
+import { cacheService, cacheKeys } from '../config/redis.js';
 
 export const pageService = {
     async getPublicPages() {
@@ -34,6 +35,14 @@ export const pageService = {
         };
         const page = await creatorPageRepository.findOneAndUpdateUpsert({ userId }, updateConfig);
 
+        // Invalidate page cache
+        if (page && page.pageSlug) {
+            cacheService.del(cacheKeys.creatorPage(page.pageSlug)).catch(() => {});
+        }
+        if (oldPage && oldPage.pageSlug && oldPage.pageSlug !== page?.pageSlug) {
+            cacheService.del(cacheKeys.creatorPage(oldPage.pageSlug)).catch(() => {});
+        }
+
         // Handle avatar lifecycle if it changed
         if (updateData.avatarUrl && oldPage && oldPage.avatarUrl !== updateData.avatarUrl) {
             await mediaLifecycleService.handleImageReplacement(
@@ -61,39 +70,37 @@ export const pageService = {
 
     async getPageBySlug(slug: string, currentUserId?: string | Types.ObjectId) {
         const _slug = slug.toLowerCase();
-        const page = await creatorPageRepository.findOnePopulated(
-            { pageSlug: _slug },
-            'userId',
-            'displayName username avatarUrl'
-        );
+
+        // 1. Check Redis cache for public page data (TTL 300s = 5m)
+        let page = await cacheService.get<any>(cacheKeys.creatorPage(_slug));
 
         if (!page) {
-            throw createError.notFound('Page');
+            page = await creatorPageRepository.findOnePopulated(
+                { pageSlug: _slug },
+                'userId',
+                'displayName username avatarUrl'
+            );
+
+            if (!page) {
+                throw createError.notFound('Page');
+            }
+
+            // Cache the public page document in Redis (lean format)
+            await cacheService.set(cacheKeys.creatorPage(_slug), page, 300);
         }
 
+        // 2. Dynamically determine ownership and membership based on caller context (never cached in shared cache)
         let isMember = false;
         let isOwner = false;
 
-        // Auto-fix post count if out of sync
-        const realPostCount = await postRepository.countDocuments({
-            pageId: page._id,
-            status: 'published'
-        });
-
-        if (page.postCount !== realPostCount) {
-            console.log(`[Page] Fixing post count for ${page.pageSlug}: ${page.postCount} -> ${realPostCount}`);
-            await creatorPageRepository.updateOne({ _id: page._id }, { postCount: realPostCount });
-            page.postCount = realPostCount;
-        }
-
         if (currentUserId) {
-            const pageOwnerIdStr = (page.userId as any)._id ? (page.userId as any)._id.toString() : page.userId.toString();
+            const pageOwnerIdStr = (page.userId as any)?._id ? (page.userId as any)._id.toString() : page.userId?.toString();
             isOwner = pageOwnerIdStr === currentUserId.toString();
 
             if (!isOwner) {
                 const membershipExists = await memberRepository.exists({
                     memberId: currentUserId,
-                    creatorId: (page.userId as any)._id || page.userId,
+                    creatorId: (page.userId as any)?._id || page.userId,
                     status: 'active',
                 });
                 isMember = !!membershipExists;
@@ -115,6 +122,7 @@ export const pageService = {
                     avatarUrl: page.avatarUrl,
                     bannerUrl: page.bannerUrl,
                     memberCount: page.memberCount,
+                    postCount: page.postCount,
                     isPublic: page.isPublic,
                     activeLiveSessionId: page.activeLiveSessionId,
                 },

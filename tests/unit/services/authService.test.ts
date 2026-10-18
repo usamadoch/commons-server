@@ -7,6 +7,7 @@ jest.unstable_mockModule('../../../src/models/User.js', () => ({
         findOne: jest.fn(),
         findById: jest.fn(),
         create: jest.fn(),
+        exists: jest.fn(),
     }
 }));
 
@@ -77,20 +78,21 @@ describe('AuthService', () => {
 
     describe('checkEmail', () => {
         it('should return true if email exists', async () => {
-            User.findOne.mockResolvedValue({ _id: mockUserId, email: mockEmail });
+            User.exists.mockResolvedValue({ _id: mockUserId });
 
             const result = await authService.checkEmail(mockEmail);
 
             expect(result).toBe(true);
-            expect(User.findOne).toHaveBeenCalledWith({ email: mockEmail.toLowerCase() });
+            expect(User.exists).toHaveBeenCalledWith({ email: mockEmail.toLowerCase() });
         });
 
         it('should return false if email does not exist', async () => {
-            User.findOne.mockResolvedValue(null);
+            User.exists.mockResolvedValue(null);
 
             const result = await authService.checkEmail(mockEmail);
 
             expect(result).toBe(false);
+            expect(User.exists).toHaveBeenCalledWith({ email: mockEmail.toLowerCase() });
         });
     });
 
@@ -222,7 +224,7 @@ describe('AuthService', () => {
                 isActive: true,
                 toObject: jest.fn().mockReturnValue({ _id: mockUserId })
             };
-            User.findById.mockResolvedValue(mockUser);
+            User.findById.mockReturnValue({ select: jest.fn<any>().mockResolvedValue(mockUser) });
             RefreshToken.deleteOne.mockResolvedValue({});
             RefreshToken.create.mockResolvedValue({ token: 'new-refresh-token' });
 
@@ -268,10 +270,12 @@ describe('AuthService', () => {
                 toObject: jest.fn().mockReturnValue({
                     _id: mockUserId,
                     email: mockEmail,
-                    passwordHash: 'hashed'
+                    role: 'member',
+                    displayName: 'Test User',
+                    username: 'testuser',
                 })
             };
-            User.findById.mockResolvedValue(mockUser);
+            User.findById.mockReturnValue({ select: jest.fn<any>().mockResolvedValue(mockUser) });
 
             const result = await authService.getCurrentUser(mockUserId);
 
@@ -280,11 +284,11 @@ describe('AuthService', () => {
         });
 
         it('should return null if user not found', async () => {
-            User.findById.mockResolvedValue(null);
+            User.findById.mockReturnValue({ select: jest.fn<any>().mockResolvedValue(null) });
 
             const result = await authService.getCurrentUser(mockUserId);
 
-            expect(result).toBeNull();
+            expect(result).toBe(null);
         });
     });
 });

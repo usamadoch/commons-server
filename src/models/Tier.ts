@@ -71,6 +71,7 @@ const tierSchema = new Schema<ITierDocument>(
 );
 
 // Indexes
+tierSchema.index({ creatorId: 1, status: 1, price: 1 });
 tierSchema.index({ creatorId: 1 });
 tierSchema.index({ pageId: 1 });
 tierSchema.index({ status: 1 });

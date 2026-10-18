@@ -1,0 +1,1929 @@
+{
+  "metadata": {
+    "suite": "Stage 2 Single-User Sequential Read Baseline",
+    "timestamp": "2026-10-18T15:39:14.730Z",
+    "targetUrl": "https://api.commons.pk",
+    "renderInstanceId": "d09e23e4-05db-4d39",
+    "cloudflareRay": "a4c89adf0fddfe21-SIN",
+    "deployedGitCommit": "5662a13",
+    "branch": "main",
+    "deploymentRegion": "Render Oregon (AWS us-west-2)",
+    "databaseRegion": "MongoDB Atlas Oregon (cluster0.0hhveup.mongodb.net)",
+    "cacheLayer": "Upstash Redis Global Serverless",
+    "runnerLocation": "Pakistan (cross-continental transit)",
+    "totalDurationSec": 312.9,
+    "totalRequests": 304,
+    "totalMeasuredRequests": 280,
+    "warmupCountPerEndpoint": 3,
+    "measureCountPerEndpoint": 35,
+    "interRequestDelayMs": 650
+  },
+  "endpoints": [
+    {
+      "endpoint": "GET /health",
+      "category": "Simple Public Read",
+      "path": "/health",
+      "targetP95": 500,
+      "sampleCount": 35,
+      "successCount": 35,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 35
+      },
+      "requestRatePerSec": 1.21,
+      "approxRatePerMin": 72.6,
+      "stats": {
+        "min": 129.2,
+        "avg": 165.85,
+        "p50": 140.97,
+        "p90": 244.38,
+        "p95": 296.23,
+        "p99": 305.97,
+        "max": 305.97
+      },
+      "verdict": "PASS"
+    },
+    {
+      "endpoint": "GET /ready",
+      "category": "Simple Public Read",
+      "path": "/ready",
+      "targetP95": 500,
+      "sampleCount": 35,
+      "successCount": 35,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 35
+      },
+      "requestRatePerSec": 1.22,
+      "approxRatePerMin": 73.2,
+      "stats": {
+        "min": 128.03,
+        "avg": 160.14,
+        "p50": 136,
+        "p90": 241.31,
+        "p95": 322.18,
+        "p99": 398.52,
+        "max": 398.52
+      },
+      "verdict": "PASS"
+    },
+    {
+      "endpoint": "GET /auth/csrf",
+      "category": "Simple Public Read",
+      "path": "/auth/csrf",
+      "targetP95": 500,
+      "sampleCount": 35,
+      "successCount": 35,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 35
+      },
+      "requestRatePerSec": 0.91,
+      "approxRatePerMin": 54.6,
+      "stats": {
+        "min": 107.76,
+        "avg": 442.81,
+        "p50": 143.07,
+        "p90": 528.48,
+        "p95": 1623.96,
+        "p99": 6849.21,
+        "max": 6849.21
+      },
+      "verdict": "MARGINAL"
+    },
+    {
+      "endpoint": "GET /pages",
+      "category": "Simple Public Read",
+      "path": "/pages",
+      "targetP95": 500,
+      "sampleCount": 35,
+      "successCount": 35,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 35
+      },
+      "requestRatePerSec": 1.03,
+      "approxRatePerMin": 61.8,
+      "stats": {
+        "min": 269.44,
+        "avg": 312.87,
+        "p50": 292.05,
+        "p90": 370.67,
+        "p95": 548.38,
+        "p99": 625.45,
+        "max": 625.45
+      },
+      "verdict": "MARGINAL"
+    },
+    {
+      "endpoint": "GET /pages/commons",
+      "category": "Complex DB Read",
+      "path": "/pages/commons",
+      "targetP95": 800,
+      "sampleCount": 35,
+      "successCount": 35,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 35
+      },
+      "requestRatePerSec": 0.77,
+      "approxRatePerMin": 46.2,
+      "stats": {
+        "min": 592.76,
+        "avg": 635.36,
+        "p50": 606.84,
+        "p90": 697.26,
+        "p95": 905.75,
+        "p99": 974.82,
+        "max": 974.82
+      },
+      "verdict": "MARGINAL"
+    },
+    {
+      "endpoint": "GET /posts/creator?pageSlug=commons",
+      "category": "Complex DB Read",
+      "path": "/posts/creator?pageSlug=commons",
+      "targetP95": 800,
+      "sampleCount": 35,
+      "successCount": 35,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 35
+      },
+      "requestRatePerSec": 0.89,
+      "approxRatePerMin": 53.4,
+      "stats": {
+        "min": 429.49,
+        "avg": 471.61,
+        "p50": 442.19,
+        "p90": 487.54,
+        "p95": 707.04,
+        "p99": 789.34,
+        "max": 789.34
+      },
+      "verdict": "PASS"
+    },
+    {
+      "endpoint": "GET /posts/:id",
+      "category": "Complex DB Read",
+      "path": "/posts/6ab670e11d78868df779cf94",
+      "targetP95": 800,
+      "sampleCount": 35,
+      "successCount": 35,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 35
+      },
+      "requestRatePerSec": 0.9,
+      "approxRatePerMin": 54,
+      "stats": {
+        "min": 429.86,
+        "avg": 451.07,
+        "p50": 441.95,
+        "p90": 474.98,
+        "p95": 481.02,
+        "p99": 534.34,
+        "max": 534.34
+      },
+      "verdict": "PASS"
+    },
+    {
+      "endpoint": "GET /tiers/creator/:id",
+      "category": "Complex DB Read",
+      "path": "/tiers/creator/6a4ab792301861fbab5f22c8",
+      "targetP95": 800,
+      "sampleCount": 35,
+      "successCount": 35,
+      "errorCount": 0,
+      "rateLimitCount": 0,
+      "timeoutCount": 0,
+      "statusCodes": {
+        "200": 35
+      },
+      "requestRatePerSec": 1.06,
+      "approxRatePerMin": 63.6,
+      "stats": {
+        "min": 268.03,
+        "avg": 282.65,
+        "p50": 276.31,
+        "p90": 308.34,
+        "p95": 313.12,
+        "p99": 322.29,
+        "max": 322.29
+      },
+      "verdict": "PASS"
+    }
+  ],
+  "rawDetailedSamples": {
+    "GET /health": [
+      {
+        "sampleIndex": 1,
+        "durationMs": 140.22,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 2,
+        "durationMs": 244.38,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 3,
+        "durationMs": 166.2,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 4,
+        "durationMs": 305.97,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 5,
+        "durationMs": 150.49,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 6,
+        "durationMs": 140.97,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 7,
+        "durationMs": 148.77,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 8,
+        "durationMs": 188.2,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 9,
+        "durationMs": 143.96,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 10,
+        "durationMs": 141.32,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 11,
+        "durationMs": 150.77,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 12,
+        "durationMs": 146.34,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 13,
+        "durationMs": 244.21,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 14,
+        "durationMs": 134.54,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 15,
+        "durationMs": 136.3,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 16,
+        "durationMs": 132.08,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 17,
+        "durationMs": 135.11,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 18,
+        "durationMs": 137,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 19,
+        "durationMs": 138.77,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 20,
+        "durationMs": 133.11,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 21,
+        "durationMs": 234.14,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 22,
+        "durationMs": 134.42,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 23,
+        "durationMs": 296.23,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 24,
+        "durationMs": 134.3,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 25,
+        "durationMs": 129.2,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 26,
+        "durationMs": 148.1,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 27,
+        "durationMs": 139.69,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 28,
+        "durationMs": 134.69,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 29,
+        "durationMs": 134.82,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 30,
+        "durationMs": 240.22,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 31,
+        "durationMs": 137.43,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 32,
+        "durationMs": 156.1,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 33,
+        "durationMs": 253.99,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 34,
+        "durationMs": 136.11,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 35,
+        "durationMs": 136.44,
+        "status": 200,
+        "valid": true
+      }
+    ],
+    "GET /ready": [
+      {
+        "sampleIndex": 1,
+        "durationMs": 139.59,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 2,
+        "durationMs": 136.86,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 3,
+        "durationMs": 141.52,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 4,
+        "durationMs": 130.47,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 5,
+        "durationMs": 139.4,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 6,
+        "durationMs": 144.41,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 7,
+        "durationMs": 129.2,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 8,
+        "durationMs": 128.22,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 9,
+        "durationMs": 128.33,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 10,
+        "durationMs": 136,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 11,
+        "durationMs": 128.03,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 12,
+        "durationMs": 241.31,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 13,
+        "durationMs": 134.56,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 14,
+        "durationMs": 131.33,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 15,
+        "durationMs": 129.92,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 16,
+        "durationMs": 137.89,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 17,
+        "durationMs": 135.24,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 18,
+        "durationMs": 133.66,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 19,
+        "durationMs": 129.41,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 20,
+        "durationMs": 316.3,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 21,
+        "durationMs": 130.11,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 22,
+        "durationMs": 129.8,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 23,
+        "durationMs": 322.18,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 24,
+        "durationMs": 135.8,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 25,
+        "durationMs": 150.87,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 26,
+        "durationMs": 163.8,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 27,
+        "durationMs": 135.76,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 28,
+        "durationMs": 140.16,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 29,
+        "durationMs": 398.52,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 30,
+        "durationMs": 150.31,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 31,
+        "durationMs": 172.98,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 32,
+        "durationMs": 192.8,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 33,
+        "durationMs": 134.64,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 34,
+        "durationMs": 134.14,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 35,
+        "durationMs": 141.54,
+        "status": 200,
+        "valid": true
+      }
+    ],
+    "GET /auth/csrf": [
+      {
+        "sampleIndex": 1,
+        "durationMs": 134.13,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 2,
+        "durationMs": 139.42,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 3,
+        "durationMs": 161.04,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 4,
+        "durationMs": 175.25,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 5,
+        "durationMs": 181.07,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 6,
+        "durationMs": 528.48,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 7,
+        "durationMs": 143.07,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 8,
+        "durationMs": 132.03,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 9,
+        "durationMs": 214.03,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 10,
+        "durationMs": 6849.21,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 11,
+        "durationMs": 1623.96,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 12,
+        "durationMs": 624.92,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 13,
+        "durationMs": 338.78,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 14,
+        "durationMs": 134.28,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 15,
+        "durationMs": 487.68,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 16,
+        "durationMs": 116.02,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 17,
+        "durationMs": 137.12,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 18,
+        "durationMs": 476.42,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 19,
+        "durationMs": 153.56,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 20,
+        "durationMs": 115.51,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 21,
+        "durationMs": 160.59,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 22,
+        "durationMs": 114.22,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 23,
+        "durationMs": 470.36,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 24,
+        "durationMs": 129.54,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 25,
+        "durationMs": 118.63,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 26,
+        "durationMs": 111.49,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 27,
+        "durationMs": 203.43,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 28,
+        "durationMs": 110.95,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 29,
+        "durationMs": 134.9,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 30,
+        "durationMs": 116.02,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 31,
+        "durationMs": 153.83,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 32,
+        "durationMs": 471.09,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 33,
+        "durationMs": 107.76,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 34,
+        "durationMs": 118.42,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 35,
+        "durationMs": 111.09,
+        "status": 200,
+        "valid": true
+      }
+    ],
+    "GET /pages": [
+      {
+        "sampleIndex": 1,
+        "durationMs": 276.96,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 2,
+        "durationMs": 288.44,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 3,
+        "durationMs": 304.05,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 4,
+        "durationMs": 298.23,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 5,
+        "durationMs": 270.38,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 6,
+        "durationMs": 311.09,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 7,
+        "durationMs": 274.89,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 8,
+        "durationMs": 269.44,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 9,
+        "durationMs": 292.94,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 10,
+        "durationMs": 272.35,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 11,
+        "durationMs": 310.61,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 12,
+        "durationMs": 274.02,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 13,
+        "durationMs": 273.14,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 14,
+        "durationMs": 312.89,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 15,
+        "durationMs": 275.61,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 16,
+        "durationMs": 286.06,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 17,
+        "durationMs": 274.82,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 18,
+        "durationMs": 298.39,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 19,
+        "durationMs": 306.75,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 20,
+        "durationMs": 276.15,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 21,
+        "durationMs": 305.14,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 22,
+        "durationMs": 313.01,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 23,
+        "durationMs": 370.67,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 24,
+        "durationMs": 370.02,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 25,
+        "durationMs": 275.68,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 26,
+        "durationMs": 275.14,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 27,
+        "durationMs": 625.45,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 28,
+        "durationMs": 292.05,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 29,
+        "durationMs": 548.38,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 30,
+        "durationMs": 274.36,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 31,
+        "durationMs": 282.42,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 32,
+        "durationMs": 310.45,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 33,
+        "durationMs": 278.63,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 34,
+        "durationMs": 376.16,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 35,
+        "durationMs": 305.56,
+        "status": 200,
+        "valid": true
+      }
+    ],
+    "GET /pages/commons": [
+      {
+        "sampleIndex": 1,
+        "durationMs": 632.09,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 2,
+        "durationMs": 600.19,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 3,
+        "durationMs": 615.19,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 4,
+        "durationMs": 697.26,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 5,
+        "durationMs": 611.97,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 6,
+        "durationMs": 626.93,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 7,
+        "durationMs": 592.99,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 8,
+        "durationMs": 610.12,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 9,
+        "durationMs": 601.52,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 10,
+        "durationMs": 599.53,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 11,
+        "durationMs": 600.85,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 12,
+        "durationMs": 617.25,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 13,
+        "durationMs": 607.95,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 14,
+        "durationMs": 596.8,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 15,
+        "durationMs": 609.77,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 16,
+        "durationMs": 974.82,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 17,
+        "durationMs": 637.94,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 18,
+        "durationMs": 595.27,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 19,
+        "durationMs": 629.69,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 20,
+        "durationMs": 597.42,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 21,
+        "durationMs": 592.76,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 22,
+        "durationMs": 597.59,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 23,
+        "durationMs": 603.96,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 24,
+        "durationMs": 828.34,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 25,
+        "durationMs": 595.29,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 26,
+        "durationMs": 594.08,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 27,
+        "durationMs": 594.74,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 28,
+        "durationMs": 606.84,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 29,
+        "durationMs": 905.75,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 30,
+        "durationMs": 595.67,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 31,
+        "durationMs": 599.01,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 32,
+        "durationMs": 631.39,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 33,
+        "durationMs": 597.99,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 34,
+        "durationMs": 608.86,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 35,
+        "durationMs": 629.66,
+        "status": 200,
+        "valid": true
+      }
+    ],
+    "GET /posts/creator?pageSlug=commons": [
+      {
+        "sampleIndex": 1,
+        "durationMs": 789.34,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 2,
+        "durationMs": 435.01,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 3,
+        "durationMs": 457.67,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 4,
+        "durationMs": 437.1,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 5,
+        "durationMs": 430.24,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 6,
+        "durationMs": 468.12,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 7,
+        "durationMs": 437.72,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 8,
+        "durationMs": 433.19,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 9,
+        "durationMs": 436.66,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 10,
+        "durationMs": 474.06,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 11,
+        "durationMs": 441.03,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 12,
+        "durationMs": 433.74,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 13,
+        "durationMs": 439.19,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 14,
+        "durationMs": 707.04,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 15,
+        "durationMs": 437.46,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 16,
+        "durationMs": 462.52,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 17,
+        "durationMs": 667.89,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 18,
+        "durationMs": 487.54,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 19,
+        "durationMs": 434.63,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 20,
+        "durationMs": 439.37,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 21,
+        "durationMs": 466.45,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 22,
+        "durationMs": 464.73,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 23,
+        "durationMs": 442.19,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 24,
+        "durationMs": 470.54,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 25,
+        "durationMs": 444.41,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 26,
+        "durationMs": 437.75,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 27,
+        "durationMs": 467.39,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 28,
+        "durationMs": 464.06,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 29,
+        "durationMs": 448.77,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 30,
+        "durationMs": 450.89,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 31,
+        "durationMs": 435.67,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 32,
+        "durationMs": 429.49,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 33,
+        "durationMs": 465.23,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 34,
+        "durationMs": 432.38,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 35,
+        "durationMs": 436.73,
+        "status": 200,
+        "valid": true
+      }
+    ],
+    "GET /posts/:id": [
+      {
+        "sampleIndex": 1,
+        "durationMs": 437.59,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 2,
+        "durationMs": 440.9,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 3,
+        "durationMs": 463.68,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 4,
+        "durationMs": 441.95,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 5,
+        "durationMs": 455.21,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 6,
+        "durationMs": 463.99,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 7,
+        "durationMs": 443.86,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 8,
+        "durationMs": 429.86,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 9,
+        "durationMs": 432.98,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 10,
+        "durationMs": 432.55,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 11,
+        "durationMs": 435.21,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 12,
+        "durationMs": 436.49,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 13,
+        "durationMs": 438.09,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 14,
+        "durationMs": 439.61,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 15,
+        "durationMs": 456.6,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 16,
+        "durationMs": 444.57,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 17,
+        "durationMs": 441.05,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 18,
+        "durationMs": 453.16,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 19,
+        "durationMs": 465.15,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 20,
+        "durationMs": 436.7,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 21,
+        "durationMs": 475.27,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 22,
+        "durationMs": 438.44,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 23,
+        "durationMs": 463.12,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 24,
+        "durationMs": 461.51,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 25,
+        "durationMs": 437.33,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 26,
+        "durationMs": 440.68,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 27,
+        "durationMs": 435.59,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 28,
+        "durationMs": 434.28,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 29,
+        "durationMs": 534.34,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 30,
+        "durationMs": 447.25,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 31,
+        "durationMs": 481.02,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 32,
+        "durationMs": 436.94,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 33,
+        "durationMs": 470.33,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 34,
+        "durationMs": 467.03,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 35,
+        "durationMs": 474.98,
+        "status": 200,
+        "valid": true
+      }
+    ],
+    "GET /tiers/creator/:id": [
+      {
+        "sampleIndex": 1,
+        "durationMs": 276.28,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 2,
+        "durationMs": 279.58,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 3,
+        "durationMs": 303.17,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 4,
+        "durationMs": 276.12,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 5,
+        "durationMs": 274.22,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 6,
+        "durationMs": 268.03,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 7,
+        "durationMs": 269.53,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 8,
+        "durationMs": 272.98,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 9,
+        "durationMs": 281.97,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 10,
+        "durationMs": 271.92,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 11,
+        "durationMs": 276.8,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 12,
+        "durationMs": 279.57,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 13,
+        "durationMs": 310.81,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 14,
+        "durationMs": 279.02,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 15,
+        "durationMs": 307.19,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 16,
+        "durationMs": 297.22,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 17,
+        "durationMs": 274.49,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 18,
+        "durationMs": 275.42,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 19,
+        "durationMs": 276.31,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 20,
+        "durationMs": 302.71,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 21,
+        "durationMs": 273.81,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 22,
+        "durationMs": 272.55,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 23,
+        "durationMs": 278.89,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 24,
+        "durationMs": 322.29,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 25,
+        "durationMs": 272.09,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 26,
+        "durationMs": 278.92,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 27,
+        "durationMs": 275.34,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 28,
+        "durationMs": 272.07,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 29,
+        "durationMs": 274.6,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 30,
+        "durationMs": 275.1,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 31,
+        "durationMs": 276.57,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 32,
+        "durationMs": 313.12,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 33,
+        "durationMs": 268.18,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 34,
+        "durationMs": 308.34,
+        "status": 200,
+        "valid": true
+      },
+      {
+        "sampleIndex": 35,
+        "durationMs": 277.51,
+        "status": 200,
+        "valid": true
+      }
+    ]
+  }
+}
